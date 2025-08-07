@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Atacado</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS básico para começar - depois movemos para arquivo separado */
+        body {
+            font-family: "EB Garamond", serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            background-image: url('uploads/background04.png');
+        }
+
+        .logo-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 50%;
+            height: 50%;
+            margin: 3rem;
+        }
+
+        .login-container {
+            background-image: url('uploads/background07.png');
+            background-color: transparent rgba(10, 10, 10, 10);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.5),
+                0 6px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .login-title {
+            font-size: 34px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px;
+            background-color: rgb(255, 208, 0);
+            color: rgb(5, 5, 5);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: black 0 0 5px;
+        }
+        button:hover {
+            background-color: #fef780;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-area">
+        <img class="logo" src="uploads/flute_logo.png" alt="Logo da empresa">
+    <div class="login-container">
+        <h2 class="login-title">Faça Seu Login</h2>
+        <form action="login.php" method="POST">
+            <input type="email" name="email" placeholder="Seu e-mail" required>
+            <input type="password" name="senha" placeholder="Sua senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <div class="register-link">
+            <p>Ainda não tem conta? <a href="cadastro.html">Cadastre-se aqui</a></p>
+        </div>
+    </div>
+</body>
+</html>

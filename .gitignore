@@ -1,0 +1,11 @@
+# Dependências do Composer
+/vendor/
+
+# Arquivos de upload
+/uploads/
+
+# Arquivo de sistema do macOS
+.DS_Store
+
+# Arquivos de configuração local (se houver)
+config/local.php

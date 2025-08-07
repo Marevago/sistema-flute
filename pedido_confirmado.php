@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <title>Pedido Confirmado</title>
+    <style>
+        /* Use os mesmos estilos base das outras páginas */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            margin: 1rem;
+            padding: 20px;
+            background-image: url('uploads/background04.png');
+        }
+
+        .logo {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .success-message {
+            color:rgb(174, 143, 49);
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-family: 'EB Garamond', serif;
+        }
+        
+        .confirmation-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .details {
+            color: #666;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: rgb(174, 143, 49);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-area">
+        <a href="index.php">
+            <img src="uploads/flute_logo.png" alt="Logo da loja" width="200" class="logo">
+        </a>
+    <div class="confirmation-container">
+        <h1 class="success-message">Pedido Confirmado!</h1>
+        <p>Obrigado por sua compra. Seu pedido foi recebido com sucesso!</p>
+        <div class="details">
+            <p>Entraremos em contato em breve para combinar os detalhes do pagamento e entrega.</p>
+            <p>Fique atento ao seu email e telefone.</p>
+        </div>
+        <a href="produtos.php" class="btn">Voltar para a Loja</a>
+    </div>
+</body>
+</html>
