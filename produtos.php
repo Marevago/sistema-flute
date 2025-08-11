@@ -141,52 +141,54 @@ if (usuarioEstaLogado()) {
         }
     </style>
     <script>
-        // Mobile menu toggle and side-drawer behavior
+        // Novo script para o cabeçalho (menu mobile e dropdowns)
         document.addEventListener('DOMContentLoaded', function() {
-            const header = document.querySelector('.header');
-            const toggle = document.getElementById('menu-toggle');
+            const menuToggle = document.getElementById('menu-toggle');
+            const mainNav = document.getElementById('main-nav');
             const backdrop = document.getElementById('backdrop');
-            const mobileSearchBtn = document.getElementById('mobile-search-btn');
-            const mobileSearch = document.getElementById('mobile-search');
-            const mobileSearchClose = document.getElementById('mobile-search-close');
-            const dropdownLinks = document.querySelectorAll('.nav-item.dropdown > a');
-            const openMenu = () => {
-                header.classList.add('open');
-                toggle.setAttribute('aria-expanded', 'true');
-                document.body.style.overflow = 'hidden';
-            };
-            const closeMenu = () => {
-                header.classList.remove('open');
-                toggle.setAttribute('aria-expanded', 'false');
-                document.body.style.overflow = '';
-                document.querySelectorAll('.dropdown.open').forEach(el => el.classList.remove('open'));
-            };
-            if (toggle) {
-                toggle.addEventListener('click', function(e) {
+
+            if (menuToggle && mainNav && backdrop) {
+                const openMenu = () => {
+                    mainNav.classList.add('open');
+                    backdrop.classList.add('open');
+                    menuToggle.setAttribute('aria-expanded', 'true');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                const closeMenu = () => {
+                    mainNav.classList.remove('open');
+                    backdrop.classList.remove('open');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
+                    // Fecha submenus abertos no mobile
+                    document.querySelectorAll('.main-nav .dropdown.open').forEach(d => d.classList.remove('open'));
+                };
+
+                menuToggle.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (header.classList.contains('open')) closeMenu(); else openMenu();
+                    if (mainNav.classList.contains('open')) {
+                        closeMenu();
+                    } else {
+                        openMenu();
+                    }
+                });
+
+                backdrop.addEventListener('click', closeMenu);
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && mainNav.classList.contains('open')) {
+                        closeMenu();
+                    }
                 });
             }
-            if (backdrop) backdrop.addEventListener('click', closeMenu);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
-            // Mobile search open/close
-            if (mobileSearchBtn && mobileSearch) {
-                mobileSearchBtn.addEventListener('click', () => {
-                    mobileSearch.classList.add('open');
-                    const input = mobileSearch.querySelector('input[name="q"]');
-                    if (input) { setTimeout(() => input.focus(), 0); }
-                });
-            }
-            if (mobileSearchClose && mobileSearch) {
-                mobileSearchClose.addEventListener('click', () => mobileSearch.classList.remove('open'));
-            }
-            // Enable tap to open dropdowns on mobile
-            dropdownLinks.forEach(link => {
+
+            // Lógica de dropdown para o menu mobile (drawer)
+            const dropdownsInNav = document.querySelectorAll('.main-nav .nav-item.dropdown');
+            dropdownsInNav.forEach(dropdown => {
+                const link = dropdown.querySelector('a');
                 link.addEventListener('click', function(e) {
-                    if (window.matchMedia('(max-width: 768px)').matches) {
+                    if (window.matchMedia('(max-width: 768px)').matches && mainNav.classList.contains('open')) {
                         e.preventDefault();
-                        const parent = link.closest('.dropdown');
-                        parent.classList.toggle('open');
+                        dropdown.classList.toggle('open');
                     }
                 });
             });
@@ -273,100 +275,80 @@ if (usuarioEstaLogado()) {
 </head>
 <body>
     <!-- Cabeçalho com logo, busca e ações -->
-    <header class="header header-top">
-        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false">
-            <span></span>
-        </button>
-        <div class="logo-area">
-            <img src="uploads/flute_logo.png" alt="Logo da Loja" class="logo">
+    <header class="site-header">
+        <div class="header-top-bar">
+            <div class="container">
+                <p>Seja um distribuidor Flute! Entre em contato conosco.</p>
+                <a href="central-atendimento.php" class="action-link">Central de Atendimento</a>
+            </div>
         </div>
-        <form class="search-bar" action="buscar.php" method="get">
-            <input type="text" name="q" placeholder="Digite o que você procura" aria-label="Buscar produtos">
-            <button type="submit" aria-label="Buscar" class="search-btn">🔍</button>
-        </form>
-        <div class="header-actions">
-            <button type="button" class="header-search-btn" id="mobile-search-btn" aria-label="Buscar" title="Buscar">🔍</button>
-            <a href="central-atendimento.php" class="action-link">Central de Atendimento</a>
-            <?php if (usuarioEstaLogado()): ?>
-                <span class="action-link">Olá, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
-                <a href="logout.php" class="action-link">Sair</a>
-            <?php else: ?>
-                <a href="login.html" class="action-link">Entrar / Cadastrar</a>
-            <?php endif; ?>
-            <a href="carrinho-pagina.php" class="cart-mini">
-                🛒 <span class="cart-count" id="cart-count">0</span>
-            </a>
-        </div>
-    </header>
+        <div class="header-main">
+            <div class="container">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+                    <span></span>
+                </button>
 
-    <!-- Sobreposição de busca mobile -->
-    <div class="mobile-search-overlay" id="mobile-search">
-        <form class="mobile-search-form" action="buscar.php" method="get">
-            <input type="text" name="q" placeholder="Busque produtos" aria-label="Buscar" autofocus>
-            <button type="submit" class="mobile-search-submit">Buscar</button>
-            <button type="button" class="mobile-search-close" id="mobile-search-close" aria-label="Fechar">✕</button>
-        </form>
-    </div>
+                <div class="logo-area">
+                    <a href="index.php">
+                        <img src="uploads/flute_logo.png" alt="Logo Flute Incensos" class="logo">
+                    </a>
+                </div>
 
-    <!-- Barra de categorias (desktop) e drawer (mobile já existente) -->
-    <nav class="main-categories">
-        <ul class="cat-list">
-            <li class="nav-item dropdown">
-                <a href="#" class="nav-link">Produtos</a>
-                <div class="dropdown-content">
-                    <a href="regular-square.php?cat=regular-square">Regular Square</a>
-                    <a href="masala-square.php?cat=masala-square">Masala Square</a>
-                    <a href="xamanico-tube.php?cat=incenso-xamanico">Incenso Xamânico Tube</a>
-                    <a href="cycle-brand-regular.php?cat=cycle-brand-regular">Cycle Brand Regular Square</a>
-                    <a href="long-square.php?cat=long-square">Long Square</a>
-                    <a href="cycle-brand-rectangle.php?cat=cycle-brand-rectangle">Cycle Brand Rectangle</a>
-                    <a href="masala-small.php?cat=masala-small">Masala Small Packet</a>
-                    <a href="clove-brand.php?cat=clove-brand">Clove Brand</a>
-                    <a href="produtos.php">Ver Todos os Produtos</a>
+                <div class="search-bar-area">
+                    <form class="search-bar" action="buscar.php" method="get">
+                        <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos">
+                        <button type="submit" aria-label="Buscar" class="search-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </button>
+                    </form>
                 </div>
-            </li>
-            <li><a href="index.php" class="nav-link">Início</a></li>
-            <li><a href="sobre.php" class="nav-link">Sobre</a></li>
-            <li><a href="contato.php" class="nav-link">Contato</a></li>
-        </ul>
-    </nav>
 
-    <!-- Drawer mobile reaproveita a estrutura existente abaixo -->
-    <div class="backdrop" id="backdrop"></div>
-    <nav class="main-nav">
-                <div class="nav-item">
-                    <a href="index.php" class="nav-link">Início</a>
-                </div>
-                <div class="nav-item dropdown">
-                    <a href="#" class="nav-link">Produtos</a>
-                    <div class="dropdown-content">
-                        <a href="regular-square.php?cat=regular-square">Regular Square</a>
-                        <a href="masala-square.php?cat=masala-square">Masala Square</a>
-                        <a href="xamanico-tube.php?cat=incenso-xamanico">Incenso Xamânico Tube</a>
-                        <a href="cycle-brand-regular.php?cat=cycle-brand-regular">Cycle Brand Regular Square</a>
-                        <a href="long-square.php?cat=long-square">Long Square</a>
-                        <a href="cycle-brand-rectangle.php?cat=cycle-brand-rectangle">Cycle Brand Rectangle</a>
-                        <a href="masala-small.php?cat=masala-small">Masala Small Packet</a>
-                        <a href="clove-brand.php?cat=clove-brand">Clove Brand</a>
-                        <a href="produtos.php">Ver Todos os Produtos</a>
-                    </div>
-                </div>
-                <a href="sobre.php" class="nav-link">Sobre</a>
-                <a href="contato.php" class="nav-link">Contato</a>
-                
-                <?php if (usuarioEstaLogado()): ?>
-                    <div class="cart-icon">
-                        <a href="carrinho-pagina.php" class="btn btn-cart">
-                            🛒 Carrinho
-                            <span class="cart-count" id="cart-count">0</span>
+                <div class="header-actions-area">
+                    <?php if (usuarioEstaLogado()): ?>
+                        <a href="minha-conta.php" class="action-icon user-account" title="Minha Conta">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Olá, <?php echo htmlspecialchars(explode(' ', $_SESSION['user_name'])[0]); ?></span>
                         </a>
-                    </div>
-                    <span class="nav-link">Olá, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
-                    <a href="logout.php" class="btn">Sair</a>
-                <?php else: ?>
-                    <a href="login.html" class="btn btn-cart">Login</a>
-                <?php endif; ?>
-            </nav>
+                        <a href="logout.php" class="action-link">Sair</a>
+                    <?php else: ?>
+                        <a href="login.html" class="action-icon user-account" title="Entrar ou Cadastrar">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Entrar</span>
+                        </a>
+                    <?php endif; ?>
+
+                    <a href="carrinho-pagina.php" class="action-icon cart-mini" title="Carrinho">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        <span class="cart-count" id="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <nav class="main-nav" id="main-nav">
+            <div class="container">
+                <ul class="nav-list">
+                    <li><a href="index.php" class="nav-link">Início</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="produtos.php" class="nav-link">Produtos</a>
+                        <div class="dropdown-content">
+                            <a href="regular-square.php?cat=regular-square">Regular Square</a>
+                            <a href="masala-square.php?cat=masala-square">Masala Square</a>
+                            <a href="xamanico-tube.php?cat=incenso-xamanico">Incenso Xamânico Tube</a>
+                            <a href="cycle-brand-regular.php?cat=cycle-brand-regular">Cycle Brand Regular</a>
+                            <a href="long-square.php?cat=long-square">Long Square</a>
+                            <a href="cycle-brand-rectangle.php?cat=cycle-brand-rectangle">Cycle Brand Rectangle</a>
+                            <a href="masala-small.php?cat=masala-small">Masala Small Packet</a>
+                            <a href="clove-brand.php?cat=clove-brand">Clove Brand</a>
+                            <a href="produtos.php">Ver Todos</a>
+                        </div>
+                    </li>
+                    <li><a href="sobre.php" class="nav-link">Sobre Nós</a></li>
+                    <li><a href="contato.php" class="nav-link">Contato</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="backdrop" id="backdrop"></div>
+    </header>
 
     <!-- Slider main container -->
     <div class="swiper-container banner-slider">
