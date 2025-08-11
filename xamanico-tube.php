@@ -275,6 +275,26 @@ $xamanicoProducts = $stmtXamanico->fetchAll(PDO::FETCH_ASSOC);
         .cart-message.error {
             background-color: #e74c3c;
         }
+
+        /* Mobile drawer header */
+        @media (max-width: 768px) {
+            .header { padding: 10px 12px; }
+            .site-title { font-size: 18px; }
+            .logo { width: 64px; height: 64px; }
+            .menu-toggle { display: inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border:1px solid #ddd; border-radius:8px; background:#fff; margin-left:auto; }
+            .menu-toggle span { display:block; width:22px; height:2px; background:#333; position:relative; }
+            .menu-toggle span::before, .menu-toggle span::after { content:""; position:absolute; left:0; width:22px; height:2px; background:#333; }
+            .menu-toggle span::before { top:-7px; }
+            .menu-toggle span::after { top:7px; }
+
+            .main-nav { position: fixed; top: 0; left: -100%; width: 80%; max-width: 320px; height: 100vh; background: #fff; padding: 20px; box-shadow: 2px 0 12px rgba(0,0,0,.15); flex-direction: column; gap: 12px; overflow-y: auto; z-index: 1001; }
+            .dropdown-content { position: static; display: none; box-shadow: none; border: 1px solid #eee; border-radius: 6px; }
+            .dropdown.open .dropdown-content { display: block; }
+
+            .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
+            body.drawer-open .main-nav { left: 0; }
+            body.drawer-open .backdrop { display: block; }
+        }
     </style>
 </head>
 <body>
@@ -284,10 +304,13 @@ $xamanicoProducts = $stmtXamanico->fetchAll(PDO::FETCH_ASSOC);
             <img src="uploads/flute_logo.png" alt="Logo da Loja" class="logo">
             <h1 class="site-title">Flute Incensos</h1>
         </div>
-        <nav class="main-nav">
-            <a href="produtos.php" class="nav-link">Início</a>
-            <a href="#" class="nav-link">Sobre</a>
-            <a href="#" class="nav-link">Contato</a>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false"><span></span></button>
+    </header>
+    <div class="backdrop" id="backdrop"></div>
+    <nav class="main-nav">
+        <a href="produtos.php" class="nav-link">Início</a>
+        <a href="#" class="nav-link">Sobre</a>
+        <a href="#" class="nav-link">Contato</a>
             
             <?php if (usuarioEstaLogado()): ?>
                 <div class="cart-icon">
@@ -302,7 +325,6 @@ $xamanicoProducts = $stmtXamanico->fetchAll(PDO::FETCH_ASSOC);
                 <a href="login.html" class="btn btn-cart">Login</a>
             <?php endif; ?>
         </nav>
-    </header>
 
     <!-- Main content -->
     <div class="main-container">
@@ -356,6 +378,20 @@ $xamanicoProducts = $stmtXamanico->fetchAll(PDO::FETCH_ASSOC);
     <footer class="footer">
         <p>&copy; 2025 Flute Incensos. Todos os direitos reservados.</p>
     </footer>
+    <script>
+        // Mobile drawer behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('menu-toggle');
+            const backdrop = document.getElementById('backdrop');
+            const dropdownLinks = document.querySelectorAll('.nav-item.dropdown > a, .dropdown > a');
+            const openMenu = () => { document.body.classList.add('drawer-open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; };
+            const closeMenu = () => { document.body.classList.remove('drawer-open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; document.querySelectorAll('.dropdown.open').forEach(el=>el.classList.remove('open')); };
+            if (toggle) toggle.addEventListener('click', (e)=>{ e.preventDefault(); document.body.classList.contains('drawer-open') ? closeMenu() : openMenu(); });
+            if (backdrop) backdrop.addEventListener('click', closeMenu);
+            document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeMenu(); });
+            dropdownLinks.forEach(link=>{ link.addEventListener('click', (e)=>{ if (window.matchMedia('(max-width: 768px)').matches) { e.preventDefault(); link.closest('.dropdown')?.classList.toggle('open'); } }); });
+        });
+    </script>
 
     <!-- JavaScript for cart functionality -->
     <script>

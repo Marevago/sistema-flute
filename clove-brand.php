@@ -35,44 +35,45 @@ function getImagePath($variacao) {
      // 1. Primeiro substituímos os caracteres especiais
      $imageName = strtr(mb_strtolower($variacao, 'UTF-8'), $caracteresEspeciais);
     
-     // 2. Substituímos espaços por hífens
-     $imageName = str_replace(' ', '-', $imageName);
+     // 2. Substituímos espaços por nada (concatenado para seguir o padrão clove<nome>.png)
+     $imageName = str_replace(' ', '', $imageName);
      
-     // 3. Removemos quaisquer caracteres que não sejam letras, números ou hífens
-     $imageName = preg_replace('/[^a-z0-9-]/', '', $imageName);
+     // 3. Removemos quaisquer caracteres que não sejam letras ou números
+     $imageName = preg_replace('/[^a-z0-9]/', '', $imageName);
      
      // Para debug: vamos ver qual nome de arquivo está sendo gerado
      error_log("Nome original: " . $variacao);
      error_log("Nome convertido: " . $imageName);
      
-     $imagePath = "uploads/incensos/long-square/{$imageName}.jpg";
+     // 4. Prefixo 'clove-' e extensão .png no diretório uploads/incensos/clove-brand
+     $fileBase = "clove-{$imageName}";
+     $imagePath = "uploads/incensos/clove-brand/{$fileBase}.png";
 
      if (file_exists($imagePath)) {
-        $timestamp = filemtime($imagePath);
-        return $imagePath . "?v=" . $timestamp;
-    }
+         $timestamp = filemtime($imagePath);
+         return $imagePath . "?v=" . $timestamp;
+     }
      
-     return file_exists($imagePath) ? $imagePath : "uploads/incensos/default.jpg";
+     return "uploads/incensos/default.jpg";
  }
 
 // Initialize database connection
 $database = new Database();
 $conn = $database->getConnection();
-// Buscar todos os produtos Long Square
-$queryLongSquare = "SELECT * FROM produtos 
-                    WHERE categoria = 'Long Square' 
-                    AND tipo = 'produto'
-                    ORDER BY nome";
-$stmtLongSquare = $conn->prepare($queryLongSquare);
-$stmtLongSquare->execute();
-$longSquareProducts = $stmtLongSquare->fetchAll(PDO::FETCH_ASSOC);
-
+// Buscar todos os produtos Clove Brand
+$queryAllCloveBrand = "SELECT * FROM produtos 
+                         WHERE categoria = 'Clove Brand' 
+                         AND tipo = 'Incensos'
+                         ORDER BY nome";
+$stmtCloveBrand = $conn->prepare($queryAllCloveBrand);
+$stmtCloveBrand->execute();
+$cloveBrandProducts = $stmtCloveBrand->fetchAll(PDO::FETCH_ASSOC);
 
 // Get product details from database
-$query = "SELECT * FROM produtos WHERE categoria = 'Long Square' AND tipo = 'produto'";
+$query = "SELECT * FROM produtos WHERE categoria = 'Clove Brand' AND tipo = 'Incensos'";
 $stmt = $conn->prepare($query);
 $stmt->execute();
-$longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
+$cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -80,7 +81,7 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Long Square - Flute Incensos</title>
+    <title>Clove Brand - Flute Incensos</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -149,7 +150,7 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
         .category-header {
             text-align: center;
             padding: 40px 20px;
-            background-color: white;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255, 240, 200, 0.95));
             margin: 0 auto 30px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.4);
@@ -200,7 +201,7 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             padding: 0; /* Changed from 15px to 0 */
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
             overflow: hidden; /* Add this to contain the image zoom effect */
         }
 
@@ -256,6 +257,33 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             background-color: rgb(255, 153, 0);
         }
 
+        /* Search bar */
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            max-width: 800px;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 240px;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .chip {
+            display: inline-block;
+            padding: 6px 10px;
+            background: #f1f1f1;
+            border-radius: 999px;
+            font-size: 12px;
+            color: #555;
+            margin: 8px 0 0;
+        }
+
         /* Footer styles */
         .footer {
             background-color: #333;
@@ -285,26 +313,6 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
         .cart-message.error {
             background-color: #e74c3c;
         }
-
-        /* Mobile drawer header */
-        @media (max-width: 768px) {
-            .header { padding: 10px 12px; }
-            .site-title { font-size: 18px; }
-            .logo { width: 64px; height: 64px; }
-            .menu-toggle { display: inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border:1px solid #ddd; border-radius:8px; background:#fff; margin-left:auto; }
-            .menu-toggle span { display:block; width:22px; height:2px; background:#333; position:relative; }
-            .menu-toggle span::before, .menu-toggle span::after { content:""; position:absolute; left:0; width:22px; height:2px; background:#333; }
-            .menu-toggle span::before { top:-7px; }
-            .menu-toggle span::after { top:7px; }
-
-            .main-nav { position: fixed; top: 0; left: -100%; width: 80%; max-width: 320px; height: 100vh; background: #fff; padding: 20px; box-shadow: 2px 0 12px rgba(0,0,0,.15); flex-direction: column; gap: 12px; overflow-y: auto; z-index: 1001; }
-            .dropdown-content { position: static; display: none; box-shadow: none; border: 1px solid #eee; border-radius: 6px; }
-            .dropdown.open .dropdown-content { display: block; }
-
-            .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
-            body.drawer-open .main-nav { left: 0; }
-            body.drawer-open .backdrop { display: block; }
-        }
     </style>
 </head>
 <body>
@@ -314,13 +322,10 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             <img src="uploads/flute_logo.png" alt="Logo da Loja" class="logo">
             <h1 class="site-title">Flute Incensos</h1>
         </div>
-        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false"><span></span></button>
-    </header>
-    <div class="backdrop" id="backdrop"></div>
-    <nav class="main-nav">
-        <a href="produtos.php" class="nav-link">Início</a>
-        <a href="#" class="nav-link">Sobre</a>
-        <a href="#" class="nav-link">Contato</a>
+        <nav class="main-nav">
+            <a href="produtos.php" class="nav-link">Início</a>
+            <a href="#" class="nav-link">Sobre</a>
+            <a href="#" class="nav-link">Contato</a>
             
             <?php if (usuarioEstaLogado()): ?>
                 <div class="cart-icon">
@@ -335,30 +340,38 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
                 <a href="login.html" class="btn btn-cart">Login</a>
             <?php endif; ?>
         </nav>
+    </header>
 
     <!-- Main content -->
     <div class="main-container">
         <div class="category-header">
-            <h1 class="category-title">Long Square</h1>
+            <h1 class="category-title">Clove Brand</h1>
             <p class="category-description">
-                Nossa linha Long Square apresenta incensos em formato quadrado longo, 
-                oferecendo maior duração e intensidade nas fragrâncias tradicionais.
+                Nossa linha premium Clove Brand oferece uma seleção especial de incensos com fragrâncias 
+                únicas e envolventes. Cada aroma é cuidadosamente desenvolvido para criar uma atmosfera 
+                de tranquilidade e bem-estar, perfeita para momentos de meditação e relaxamento.
             </p>
         </div>
 
-        <div class="variations-grid">
-            <?php foreach ($longSquareProducts as $produto): 
+        <div class="toolbar">
+            <input id="search-input" type="search" class="search-input" placeholder="Buscar fragrância..." aria-label="Buscar fragrância" />
+        </div>
+
+        <div class="variations-grid" id="grid">
+            <?php foreach ($cloveBrandProducts as $produto): 
                 $nomeSemIncenso = str_replace('Incenso ', '', $produto['nome']); // Remove "Incenso " do nome
             ?>
-                <div class="variation-card">
+                <div class="variation-card" data-name="<?php echo mb_strtolower($nomeSemIncenso, 'UTF-8'); ?>">
                     <div class="product-image-container">
                         <img 
                             src="<?php echo getImagePath($nomeSemIncenso); ?>" 
                             alt="<?php echo htmlspecialchars($produto['nome']); ?>"
+                            loading="lazy"
                             class="product-image"
                         >
                     </div>
                     <h2 class="product-name"><?php echo htmlspecialchars($nomeSemIncenso); ?></h2>
+                    <span class="chip">Clove Brand</span>
                     
                     <?php if (usuarioEstaLogado()): ?>
                         <div class="price-area">
@@ -390,20 +403,6 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
     <footer class="footer">
         <p>&copy; 2025 Flute Incensos. Todos os direitos reservados.</p>
     </footer>
-    <script>
-        // Mobile drawer behavior
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggle = document.getElementById('menu-toggle');
-            const backdrop = document.getElementById('backdrop');
-            const dropdownLinks = document.querySelectorAll('.nav-item.dropdown > a, .dropdown > a');
-            const openMenu = () => { document.body.classList.add('drawer-open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; };
-            const closeMenu = () => { document.body.classList.remove('drawer-open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; document.querySelectorAll('.dropdown.open').forEach(el=>el.classList.remove('open')); };
-            if (toggle) toggle.addEventListener('click', (e)=>{ e.preventDefault(); document.body.classList.contains('drawer-open') ? closeMenu() : openMenu(); });
-            if (backdrop) backdrop.addEventListener('click', closeMenu);
-            document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeMenu(); });
-            dropdownLinks.forEach(link=>{ link.addEventListener('click', (e)=>{ if (window.matchMedia('(max-width: 768px)').matches) { e.preventDefault(); link.closest('.dropdown')?.classList.toggle('open'); } }); });
-        });
-    </script>
 
     <!-- JavaScript for cart functionality -->
     <script>
@@ -423,7 +422,7 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
         async function adicionarAoCarrinho(produtoId, variacao) {
             // Normalize the variation name for the quantity input ID
             const normalizedVariacao = variacao.replace(/\s+/g, '_');
-            const quantityId = `qty_${produtoId}_${encodeURIComponent(normalizedVariacao)}`;
+            const quantityId = `qty_${produtoId}`;
             const quantityInput = document.getElementById(quantityId);
             
             if (!quantityInput) {
@@ -433,76 +432,61 @@ $longSquareProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             }
 
             const quantidade = quantityInput.value;
-            
-            try {
-                // Log the data being sent for debugging
-                console.log('Enviando para o carrinho:', {
-                    produto_id: produtoId,
-                    variacao: variacao,
-                    quantidade: quantidade
-                });
 
+            try {
                 const response = await fetch('adicionar_ao_carrinho.php', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify({
-                        produto_id: produtoId,
-                        variacao: variacao,
-                        quantidade: quantidade
-                    })
+                    body: `produto_id=${produtoId}&quantidade=${quantidade}&variacao=${encodeURIComponent(variacao)}`
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
+                const result = await response.text();
                 
-                if (data.sucesso) {
+                if (response.ok) {
                     mostrarMensagem(`${variacao} adicionado ao carrinho!`, 'success');
                     atualizarContadorCarrinho();
                 } else {
-                    mostrarMensagem(data.erro || 'Erro ao adicionar ao carrinho', 'error');
+                    mostrarMensagem('Erro ao adicionar ao carrinho', 'error');
                 }
             } catch (error) {
-                console.error('Erro ao adicionar ao carrinho:', error);
-                mostrarMensagem('Erro ao adicionar ao carrinho: ' + error.message, 'error');
+                console.error('Erro:', error);
+                mostrarMensagem('Erro de conexão', 'error');
             }
-        }
-
-        function mostrarMensagem(mensagem, tipo) {
-            const msg = document.createElement('div');
-            msg.className = `cart-message ${tipo}`;
-            msg.textContent = mensagem;
-            document.body.appendChild(msg);
-
-            // Make sure the message is visible
-            msg.style.opacity = '1';
-            
-            setTimeout(() => {
-                msg.style.opacity = '0';
-                setTimeout(() => msg.remove(), 300);
-            }, 3000);
         }
 
         async function atualizarContadorCarrinho() {
             try {
-                const response = await fetch('contar_itens_carrinho.php');
-                const data = await response.json();
-                
-                const contadorElement = document.getElementById('cart-count');
-                if (contadorElement) {
-                    contadorElement.textContent = data.quantidade;
+                const response = await fetch('get_carrinho_count.php');
+                const count = await response.text();
+                const cartCountElement = document.getElementById('cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = count;
                 }
             } catch (error) {
-                console.error('Erro ao atualizar contador:', error);
+                console.error('Erro ao atualizar contador do carrinho:', error);
             }
         }
 
-        // Update cart count when page loads
+        // Atualizar contador do carrinho ao carregar a página
         document.addEventListener('DOMContentLoaded', atualizarContadorCarrinho);
+
+        // Busca/filtragem de cards por nome
+        const searchInput = document.getElementById('search-input');
+        const grid = document.getElementById('grid');
+        if (searchInput && grid) {
+            searchInput.addEventListener('input', () => {
+                const q = searchInput.value.trim().toLowerCase();
+                const cards = grid.querySelectorAll('.variation-card');
+                cards.forEach(card => {
+                    const name = card.getAttribute('data-name') || '';
+                    card.style.display = name.includes(q) ? '' : 'none';
+                });
+            });
+        }
     </script>
+
+    <script src="script.js"></script>
 </body>
 </html>

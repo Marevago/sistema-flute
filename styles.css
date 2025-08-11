@@ -1,0 +1,362 @@
+/* Estilos Globais e Variáveis */
+:root {
+    --cor-primaria: #2c3e50; /* Azul escuro */
+    --cor-secundaria: #3498db; /* Azul brilhante */
+    --cor-acento: #f1c40f; /* Amarelo */
+    --cor-fundo: #ecf0f1; /* Cinza claro */
+    --cor-texto: #34495e; /* Cinza escuro */
+    --cor-branco: #ffffff;
+    --cor-sucesso: #2ecc71;
+    --cor-erro: #e74c3c;
+    --cor-laranja-destaque: #f39c12; /* Laranja vibrante para botões */
+    --cor-laranja-destaque-hover: #e67e22; /* Laranja mais escuro para hover */
+
+    --fonte-principal: 'Poppins', sans-serif;
+    --fonte-secundaria: 'EB Garamond', serif;
+
+    --sombra-padrao: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --borda-radius: 8px;
+    --header-top-height: 72px;
+    --cat-bar-height: 44px;
+    --cat-bar-bg: #6b4a2b;
+}
+
+/* ===================== */
+/* Reset e base globais  */
+/* ===================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: var(--fonte-principal);
+    line-height: 1.6;
+    background: var(--cor-branco);
+    color: var(--cor-texto);
+}
+
+/* ÁREA DE LOGO/TÍTULO BÁSICA */
+.logo-area { display: flex; align-items: center; gap: 16px; }
+.logo { width: 80px; height: 80px; object-fit: contain; }
+.site-title { font-family: var(--fonte-secundaria); font-size: 26px; color: var(--cor-primaria); }
+
+/* LINKS DE NAVEGAÇÃO GENÉRICOS */
+.nav-link { text-decoration: none; color: var(--cor-texto); padding: 8px 12px; border-radius: 8px; transition: background-color .2s, color .2s; }
+.nav-link:hover { background: var(--cor-primaria); color: #fff; }
+
+/* LAYOUT PRINCIPAL */
+.main-container { display: flex; max-width: 1400px; margin: 24px auto; gap: 20px; }
+.products-area { flex: 1; background: #fff; border-radius: var(--borda-radius); box-shadow: 0 4px 15px rgba(0,0,0,.06); padding: 20px; }
+
+/* GRADE DE PRODUTOS */
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 20px; }
+
+/* CARD DE PRODUTO */
+.product-card {
+    background: #fff; border-radius: var(--borda-radius);
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    border: 1px solid #f0f0f0; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s;
+}
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 18px rgba(0,0,0,.08); }
+.product-image-container { overflow: hidden; }
+.product-image { width: 100%; height: 200px; object-fit: contain; }
+.product-info { padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.product-name { font-size: 15px; font-weight: 600; min-height: 38px; color: var(--cor-texto); }
+.price { font-size: 20px; color: var(--cor-primaria); font-weight: 700; }
+.cart-controls { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+
+/* BOTÕES */
+.btn { display: inline-block; padding: 10px 16px; border-radius: 6px; cursor: pointer; text-decoration: none; border: none; }
+.btn-cart { background: var(--cor-laranja-destaque); color: #fff; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+.btn-cart:hover { background: var(--cor-laranja-destaque-hover); }
+.btn-whatsapp { background: transparent; color: #25D366; border: 2px solid #25D366; font-weight: 600; text-transform: uppercase; padding: 10px 16px; border-radius: 6px; }
+.btn-whatsapp:hover { background: rgba(37,211,102,.08); border-color: #20be59; }
+
+/* Dropdown base (fora da barra também) */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 220px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    z-index: 3000;
+    border-radius: 6px;
+    top: 100%;
+    left: 0;
+    overflow: hidden;
+}
+.dropdown:hover > .dropdown-content { display: block; }
+.dropdown-content a {
+    color: var(--cor-texto);
+    padding: 10px 14px;
+    text-decoration: none;
+    display: block;
+}
+.dropdown-content a:hover { background-color: var(--cor-fundo); }
+
+/* ===================== */
+/* Header em duas faixas */
+/* ===================== */
+.header-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-top-height);
+    background: #fff;
+    z-index: 2000;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto; /* logo | search | actions */
+    align-items: center;
+    gap: 16px;
+    padding: 8px 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.header-top .logo { width: 64px; height: 64px; object-fit: contain; }
+.header-top .site-title { font-size: 20px; color: var(--cor-texto); }
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: #f4f4f4;
+    border-radius: 999px;
+    padding: 6px 10px;
+    border: 1px solid #e5e5e5;
+    max-width: 640px;
+    width: 100%;
+    justify-self: center;
+}
+.search-bar input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+.search-bar .search-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.header-actions { display: flex; align-items: center; gap: 14px; }
+.logo-area { display: flex; align-items: center; gap: 10px; white-space: nowrap; padding: 4px 10px; }
+.header-actions { white-space: nowrap; }
+.menu-toggle { display: none; } /* desktop: esconde o hamburguer */
+.header-search-btn { display: none; } /* desktop: ícone de busca só no mobile */
+.action-link { color: var(--cor-texto); font-size: 14px; text-decoration: none; }
+.action-link:hover { text-decoration: underline; }
+
+.cart-mini { position: relative; color: var(--cor-texto); text-decoration: none; }
+.cart-mini .cart-count {
+    position: absolute;
+    top: -8px; right: -10px;
+    background: var(--cor-laranja-destaque);
+    color: #fff;
+    font-size: 11px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
+.main-categories {
+    position: sticky;
+    top: var(--header-top-height);
+    z-index: 1900;
+    background: var(--cat-bar-bg);
+    color: #fff;
+    height: var(--cat-bar-height);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+.main-categories .cat-list { display: flex; gap: 18px; list-style: none; }
+.main-categories .nav-link { color: #fff; text-decoration: none; font-weight: 500; }
+.main-categories .nav-link:hover { text-decoration: underline; }
+
+/* Dropdown sobre a barra */
+.main-categories .dropdown { position: relative; }
+.main-categories .dropdown .dropdown-content {
+    top: calc(100% + 8px);
+    z-index: 3000;
+}
+
+/* Esconde o menu antigo no desktop (será usado apenas como drawer no mobile) */
+.main-nav { display: none; }
+
+/* Mobile: esconde barra de categorias e adapta header */
+@media (max-width: 768px) {
+    .header-top { grid-template-columns: auto 1fr auto; height: 64px; padding: 8px 12px; }
+    .header-top .logo { width: 48px; height: 48px; }
+    .site-title { font-size: 16px; }
+    .logo-area { justify-self: center; }
+    .search-bar { display: none; }
+    .header-actions { gap: 10px; }
+    .action-link { display: none; } /* esconder textos como Central, Olá, Sair */
+    .header-search-btn { display: inline-flex; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; width: 36px; height: 36px; align-items: center; justify-content: center; }
+    .cart-mini { font-size: 18px; }
+    .main-categories { display: none; }
+    .menu-toggle { display: inline-flex; }
+    /* Sem espaço entre header e banner no mobile */
+    .banner-slider { margin-top: 0 !important; }
+}
+
+/* Overlay de busca mobile */
+.mobile-search-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 2500;
+}
+.mobile-search-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+.mobile-search-form {
+    background: #fff; width: 94%; margin-top: 14px; border-radius: 12px; padding: 10px; display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
+}
+.mobile-search-form input { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 16px; }
+.mobile-search-submit { background: var(--cor-primaria); color: #fff; border: none; border-radius: 8px; padding: 10px 12px; }
+.mobile-search-close { background: #eee; border: none; border-radius: 8px; padding: 10px 12px; }
+
+/* ... Restante do código ... */
+
+/* Estilos para o Slider de Banners */
+.banner-slider {
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 16 / 7;
+    max-height: 500px;
+    margin-top: 0; /* Sem deslocamento adicional: fica logo abaixo da barra marrom */
+    position: relative; /* Permite posicionar setas dentro do banner */
+    /* Garante centralização via variável do Swiper */
+    --swiper-navigation-top-offset: 50%;
+}
+
+/* Imagens dos slides ocupam todo o espaço do slide como antes */
+.banner-slider .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.swiper-button-next:hover, .swiper-button-prev:hover {
+    background-color: var(--cor-primaria); /* Fundo azul sólido no hover */
+    transform: scale(1.05);
+}
+
+.swiper-button-next::after, .swiper-button-prev::after {
+    font-size: 24px; /* Ícone da seta maior e mais grosso */
+    font-weight: 900;
+}
+
+.swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.8);
+    width: 10px;
+    height: 10px;
+    opacity: 1;
+}
+
+.swiper-pagination-bullet-active {
+    background: var(--cor-acento);
+}
+
+
+/* --- Media Queries para Responsividade --- */
+
+/* Tablets (e telas menores) */
+@media (max-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 colunas em tablets */
+        gap: 20px;
+    }
+
+    .main-container {
+        flex-direction: column; /* Empilha sidebar e conteúdo */
+    }
+
+    .sidebar {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 20px;
+        position: static; /* Remove o posicionamento fixo */
+        height: auto;
+    }
+
+    .products-area {
+        margin: 0 20px; /* Ajusta margens */
+    }
+}
+
+/* Celulares */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: center;
+        padding: 15px;
+    }
+
+    .logo {
+        margin-bottom: 15px;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr; /* 1 coluna em celulares */
+    }
+
+    .banner-slider {
+        aspect-ratio: 16 / 9; /* Proporção mais comum para mobile */
+        margin-top: 155px; /* fallback padrão */
+    }
+
+    .products-area {
+        margin: 0 15px; 
+        padding: 15px;
+    }
+
+    .sidebar {
+        padding: 15px;
+    }
+
+    .footer .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+}
+
+/* Rodapé */
+.footer {
+    background-color: var(--cor-primaria);
+    color: var(--cor-branco);
+    text-align: center;
+    padding: 30px;
+    width: 100%;
+    margin-top: 40px;
+}
+
+/* Telas muito grandes (ultra-wide) - reduzir altura do banner */
+@media (min-width: 1440px) {
+    .banner-slider {
+        max-height: 560px; /* +40px conforme pedido */
+        aspect-ratio: 16 / 6; /* mais alto que 16/7 */
+    }
+}
+
+@media (min-width: 1920px) {
+    .banner-slider {
+        max-height: 620px; /* +60px */
+        aspect-ratio: 16 / 5; /* ainda mais alto */
+        margin-bottom: 24px; /* mantém um pequeno respiro */
+    }
+}
+
+@media (min-width: 2560px) {
+    .banner-slider {
+        max-height: 720px; /* +80px em telas 2.5K/4K */
+        aspect-ratio: 16 / 4.5; /* ainda mais alto */
+        margin-bottom: 28px;
+    }
+}

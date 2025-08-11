@@ -218,61 +218,24 @@ $cycleBrandProducts = $stmtCycleBrand->fetchAll(PDO::FETCH_ASSOC);
             margin-top: 15px;
         }
 
-        .quantity-input {
-            width: 60px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-        }
+        /* Mobile drawer header */
+        @media (max-width: 768px) {
+            .header { padding: 10px 12px; }
+            .site-title { font-size: 18px; }
+            .logo { width: 64px; height: 64px; }
+            .menu-toggle { display: inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border:1px solid #ddd; border-radius:8px; background:#fff; margin-left:auto; }
+            .menu-toggle span { display:block; width:22px; height:2px; background:#333; position:relative; }
+            .menu-toggle span::before, .menu-toggle span::after { content:""; position:absolute; left:0; width:22px; height:2px; background:#333; }
+            .menu-toggle span::before { top:-7px; }
+            .menu-toggle span::after { top:7px; }
 
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
+            .main-nav { position: fixed; top: 0; left: -100%; width: 80%; max-width: 320px; height: 100vh; background: #fff; padding: 20px; box-shadow: 2px 0 12px rgba(0,0,0,.15); flex-direction: column; gap: 12px; overflow-y: auto; z-index: 1001; }
+            .dropdown-content { position: static; display: none; box-shadow: none; border: 1px solid #eee; border-radius: 6px; }
+            .dropdown.open .dropdown-content { display: block; }
 
-        .btn-cart {
-            background-color: rgb(255, 208, 0);
-            color: black;
-        }
-
-        .btn-cart:hover {
-            background-color: rgb(255, 153, 0);
-        }
-
-        /* Footer styles */
-        .footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 40px;
-        }
-
-        /* Cart message styles */
-        .cart-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 4px;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1000;
-        }
-
-        .cart-message.success {
-            background-color: #2ecc71;
-        }
-
-        .cart-message.error {
-            background-color: #e74c3c;
+            .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
+            body.drawer-open .main-nav { left: 0; }
+            body.drawer-open .backdrop { display: block; }
         }
     </style>
 </head>
@@ -283,35 +246,37 @@ $cycleBrandProducts = $stmtCycleBrand->fetchAll(PDO::FETCH_ASSOC);
             <img src="uploads/flute_logo.png" alt="Logo da Loja" class="logo">
             <h1 class="site-title">Flute Incensos</h1>
         </div>
-        <nav class="main-nav">
-            <a href="produtos.php" class="nav-link">Início</a>
-            <a href="#" class="nav-link">Sobre</a>
-            <a href="#" class="nav-link">Contato</a>
-            
-            <?php if (usuarioEstaLogado()): ?>
-                <div class="cart-icon">
-                    <a href="carrinho-pagina.php" class="btn btn-cart">
-                        🛒 Carrinho
-                        <span class="cart-count" id="cart-count">0</span>
-                    </a>
-                </div>
-                <span class="nav-link">Olá, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
-                <a href="logout.php" class="btn">Sair</a>
-            <?php else: ?>
-                <a href="login.html" class="btn btn-cart">Login</a>
-            <?php endif; ?>
-        </nav>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false"><span></span></button>
     </header>
+    <div class="backdrop" id="backdrop"></div>
+    <nav class="main-nav">
+        <a href="produtos.php" class="nav-link">Início</a>
+        <a href="#" class="nav-link">Sobre</a>
+        <a href="#" class="nav-link">Contato</a>
+            
+        <?php if (usuarioEstaLogado()): ?>
+            <div class="cart-icon">
+                <a href="carrinho-pagina.php" class="btn btn-cart">
+                    🛒 Carrinho
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+            </div>
+            <span class="nav-link">Olá, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
+            <a href="logout.php" class="btn">Sair</a>
+        <?php else: ?>
+            <a href="login.html" class="btn btn-cart">Login</a>
+        <?php endif; ?>
+    </nav>
 
     <!-- Main content -->
     <div class="main-container">
-    <div class="category-header">
-        <h1 class="category-title">Cycle Brand Regular Square</h1>
-        <p class="category-description">
-            Nossa linha Cycle Brand Regular Square oferece incensos especiais com fragrâncias 
-            exclusivas da marca Cycle, conhecida por sua qualidade e tradição.
-        </p>
-    </div>
+        <div class="category-header">
+            <h1 class="category-title">Cycle Brand Regular Square</h1>
+            <p class="category-description">
+                Nossa linha Cycle Brand Regular Square oferece incensos especiais com fragrâncias 
+                exclusivas da marca Cycle, conhecida por sua qualidade e tradição.
+            </p>
+        </div>
 
         <div class="variations-grid">
             <?php foreach ($cycleBrandProducts as $produto):                $nomeSemIncenso = str_replace('Incenso ', '', $produto['nome']); // Remove "Incenso " do nome
@@ -334,7 +299,8 @@ $cycleBrandProducts = $stmtCycleBrand->fetchAll(PDO::FETCH_ASSOC);
                             <div class="cart-controls">
                                 <input type="number" min="1" value="1" 
                                     class="quantity-input"
-                                    id="qty_<?php echo $produto['id']; ?>_<?php echo urlencode(str_replace(' ', '_', $nomeSemIncenso)); ?>">                                <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($nomeSemIncenso); ?>')" 
+                                    id="qty_<?php echo $produto['id']; ?>_<?php echo urlencode(str_replace(' ', '_', $nomeSemIncenso)); ?>">
+                                <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($nomeSemIncenso); ?>')" 
                                         class="btn btn-cart">
                                     Adicionar ao Carrinho
                                 </button>
@@ -358,6 +324,19 @@ $cycleBrandProducts = $stmtCycleBrand->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- JavaScript for cart functionality -->
     <script>
+        // Mobile drawer behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('menu-toggle');
+            const backdrop = document.getElementById('backdrop');
+            const dropdownLinks = document.querySelectorAll('.nav-item.dropdown > a, .dropdown > a');
+            const openMenu = () => { document.body.classList.add('drawer-open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; };
+            const closeMenu = () => { document.body.classList.remove('drawer-open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; document.querySelectorAll('.dropdown.open').forEach(el=>el.classList.remove('open')); };
+            if (toggle) toggle.addEventListener('click', (e)=>{ e.preventDefault(); document.body.classList.contains('drawer-open') ? closeMenu() : openMenu(); });
+            if (backdrop) backdrop.addEventListener('click', closeMenu);
+            document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeMenu(); });
+            dropdownLinks.forEach(link=>{ link.addEventListener('click', (e)=>{ if (window.matchMedia('(max-width: 768px)').matches) { e.preventDefault(); link.closest('.dropdown')?.classList.toggle('open'); } }); });
+        });
+        // Function to display messages
         function mostrarMensagem(mensagem, tipo) {
             const msg = document.createElement('div');
             msg.className = `cart-message ${tipo}`;
