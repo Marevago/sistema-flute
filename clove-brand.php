@@ -313,6 +313,34 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
         .cart-message.error {
             background-color: #e74c3c;
         }
+
+        /* ============================= */
+        /* Barra de menu - somente desktop */
+        /* ============================= */
+        @media (min-width: 769px) {
+            .main-nav {
+                background: #6b4a2b; /* marrom */
+                padding: 10px 0;
+                display: flex;
+                justify-content: center;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            }
+            .main-nav .nav-link {
+                color: #fff;
+                font-weight: 600;
+                padding: 8px 12px;
+                position: relative;
+            }
+            .main-nav .nav-link::after {
+                content: '';
+                position: absolute;
+                left: 0; bottom: -2px;
+                width: 0; height: 2px;
+                background: #fff;
+                transition: width .25s ease;
+            }
+            .main-nav .nav-link:hover::after { width: 100%; }
+        }
     </style>
 </head>
 <body>

@@ -12,6 +12,15 @@
     --font-serif: 'EB Garamond', serif;
 }
 
+/* Garantia extra no desktop grande (>=1024px) */
+@media (min-width: 1024px) {
+    .site-header .main-nav {
+        background-color: var(--cat-bar-bg) !important;
+        display: block;
+    }
+    .site-header .main-nav .nav-link { color: #fff !important; }
+}
+
 .container {
     width: 100%;
     max-width: 1200px;
@@ -141,7 +150,7 @@
 
 /* Navegação Principal */
 .main-nav {
-    background-color: var(--primary-color);
+    background-color: var(--cat-bar-bg);
 }
 
 .main-nav .container {
@@ -693,5 +702,38 @@ body {
         max-height: 720px; /* +80px em telas 2.5K/4K */
         aspect-ratio: 16 / 4.5; /* ainda mais alto */
         margin-bottom: 28px;
+    }
+}
+
+/* ============================= */
+/* Barra de categorias - Desktop */
+/* ============================= */
+@media (min-width: 769px) {
+    /* Fundo marrom somente no desktop */
+    .main-nav {
+        background-color: var(--cat-bar-bg); /* marrom */
+        height: var(--cat-bar-height);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .main-nav .container { justify-content: center; }
+    .main-nav .nav-list { gap: 24px; }
+
+    /* Garante links brancos no desktop (sem alterar mobile) */
+    .main-nav .nav-link {
+        color: #fff;
+        padding: 12px 0;
+        font-weight: 600;
+    }
+
+    .main-nav .nav-link::after {
+        background-color: #fff;
+        bottom: 6px;
+    }
+
+    /* Dropdown alinhado ao menu no desktop */
+    .main-nav .dropdown-content {
+        top: 100%;
+        border-top: 2px solid rgba(0,0,0,0.04);
     }
 }
