@@ -4,6 +4,7 @@ session_start();
 
 // Import necessary configuration and classes
 require_once 'config/database.php';
+require_once 'config/functions.php';
 require_once 'carrinho.php';
 
 // Function to check if user is logged in
@@ -11,51 +12,7 @@ function usuarioEstaLogado() {
     return isset($_SESSION['user_id']);
 }
 
-function getImagePath($variacao) {
-     // Primeiro, vamos criar um array de substituição para caracteres acentuados
-     $caracteresEspeciais = array(
-        'á' => 'a', 'à' => 'a', 'ã' => 'a', 'â' => 'a',
-        'é' => 'e', 'è' => 'e', 'ê' => 'e',
-        'í' => 'i', 'ì' => 'i', 'î' => 'i',
-        'ó' => 'o', 'ò' => 'o', 'õ' => 'o', 'ô' => 'o',
-        'ú' => 'u', 'ù' => 'u', 'û' => 'u',
-        'ý' => 'y',
-        'ñ' => 'n',
-        'ç' => 'c',
-        'Á' => 'a', 'À' => 'a', 'Ã' => 'a', 'Â' => 'a',
-        'É' => 'e', 'È' => 'e', 'Ê' => 'e',
-        'Í' => 'i', 'Ì' => 'i', 'Î' => 'i',
-        'Ó' => 'o', 'Ò' => 'o', 'Õ' => 'o', 'Ô' => 'o',
-        'Ú' => 'u', 'Ù' => 'u', 'Û' => 'u',
-        'Ý' => 'y',
-        'Ñ' => 'n',
-        'Ç' => 'c'
-    );
-    // Remove acentos e converte para ASCII
-     // 1. Primeiro substituímos os caracteres especiais
-     $imageName = strtr(mb_strtolower($variacao, 'UTF-8'), $caracteresEspeciais);
-    
-     // 2. Substituímos espaços por nada (concatenado para seguir o padrão clove<nome>.png)
-     $imageName = str_replace(' ', '', $imageName);
-     
-     // 3. Removemos quaisquer caracteres que não sejam letras ou números
-     $imageName = preg_replace('/[^a-z0-9]/', '', $imageName);
-     
-     // Para debug: vamos ver qual nome de arquivo está sendo gerado
-     error_log("Nome original: " . $variacao);
-     error_log("Nome convertido: " . $imageName);
-     
-     // 4. Prefixo 'clove-' e extensão .png no diretório uploads/incensos/clove-brand
-     $fileBase = "clove-{$imageName}";
-     $imagePath = "uploads/incensos/clove-brand/{$fileBase}.png";
 
-     if (file_exists($imagePath)) {
-         $timestamp = filemtime($imagePath);
-         return $imagePath . "?v=" . $timestamp;
-     }
-     
-     return "uploads/incensos/default.jpg";
- }
 
 // Initialize database connection
 $database = new Database();
@@ -84,437 +41,455 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
     <title>Clove Brand - Flute Incensos</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="styles.css?v=1.2">
     <style>
-        /* Base styles and reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "EB Garamond", serif;
-            line-height: 1.6;
-            background-color: rgb(241, 240, 157);
-            background-image: url('uploads/background04.png');
-        }
-
-        /* Header styles */
-        .header {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px 30px;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-        }
-
-        .site-title {
-            font-size: 24px;
-            color: #333;
-        }
-
-        .main-nav {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #333;
-            padding: 5px 10px;
-        }
-
-        /* Category-specific styles */
-        .main-container {
-            margin-top: 120px;
-            padding: 0 20px;
-        }
-
-        .category-header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255, 240, 200, 0.95));
-            margin: 0 auto 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-            max-width: 800px;
-        }
-
-        .category-title {
-            font-size: 2.5em;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .variations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .product-image-container {
-            position: relative;
-            width: 100%;
-            padding-top: 100%; /* Creates a square aspect ratio */
-            overflow: hidden;
-            border-radius: 8px 8px 0 0;
-            background-color: #f8f9fa;
-        }
-
-        .product-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* This ensures the image covers the area without distortion */
-            transition: transform 0.3s ease;
-        }
-
-        .variation-card:hover .product-image {
-            transform: scale(1.05);
-        }
-
-        .variation-card {
-            background-color: white;
-            background-image: url('background05.png');
-            border-radius: 8px;
-            padding: 0; /* Changed from 15px to 0 */
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            overflow: hidden; /* Add this to contain the image zoom effect */
-        }
-
-        .variation-card .product-name {
-            padding: 15px 15px 10px;
-            margin: 0;
-        }
-
-        .variation-card .price-area {
-            padding: 0 15px 15px;
-        }
-
-        /* Cart and pricing styles */
-        .price {
-            font-size: 24px;
-            color: #2ecc71;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .cart-controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .quantity-input {
-            width: 60px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-
-        .btn-cart {
-            background-color: rgb(255, 208, 0);
-            color: black;
-        }
-
-        .btn-cart:hover {
-            background-color: rgb(255, 153, 0);
-        }
-
-        /* Search bar */
-        .toolbar {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 20px;
-            max-width: 800px;
-        }
-        .search-input {
-            flex: 1;
-            min-width: 240px;
-            padding: 10px 14px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-        .chip {
-            display: inline-block;
-            padding: 6px 10px;
-            background: #f1f1f1;
-            border-radius: 999px;
-            font-size: 12px;
-            color: #555;
-            margin: 8px 0 0;
-        }
-
-        /* Footer styles */
-        .footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 40px;
-        }
-
-        /* Cart message styles */
-        .cart-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 4px;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1000;
-        }
-
-        .cart-message.success {
-            background-color: #2ecc71;
-        }
-
-        .cart-message.error {
-            background-color: #e74c3c;
-        }
-
-        /* ============================= */
-        /* Barra de menu - somente desktop */
-        /* ============================= */
-        @media (min-width: 769px) {
-            .main-nav {
-                background: #6b4a2b; /* marrom */
-                padding: 10px 0;
-                display: flex;
-                justify-content: center;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-            }
-            .main-nav .nav-link {
-                color: #fff;
-                font-weight: 600;
-                padding: 8px 12px;
-                position: relative;
-            }
-            .main-nav .nav-link::after {
-                content: '';
-                position: absolute;
-                left: 0; bottom: -2px;
-                width: 0; height: 2px;
-                background: #fff;
-                transition: width .25s ease;
-            }
-            .main-nav .nav-link:hover::after { width: 100%; }
-        }
+        .cart-mini.cart-bump { animation: cart-bump 500ms ease; }
+        @keyframes cart-bump { 0%{transform:scale(1)} 30%{transform:scale(1.15)} 60%{transform:scale(.95)} 100%{transform:scale(1)} }
+        .cart-message { position:fixed; top:20px; right:20px; z-index:9999; background:#333; color:#fff; padding:12px 16px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,.2); opacity:0; transition:opacity .3s ease; }
+        .cart-message.success{ background:#2e7d32 }
+        .cart-message.error{ background:#c62828 }
+        /* Align product card UI to index.php */
+        .product-card { position: relative; border: 1px solid #eee; border-radius: 10px; padding: 12px; background: #fff; display:flex; flex-direction: column; }
+        .favorite-icon { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; background: #f3f4f6; display: inline-flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px #e5e7eb; cursor: pointer; z-index: 3; }
+        .favorite-icon svg { display: block; }
+        .favorite-icon:hover { background: #eceff3; }
+        .favorite-icon.active svg path { stroke: #e53935; fill: #e53935; }
+        .qty-stepper { display: inline-flex; align-items: center; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; }
+        .qty-stepper .qty-btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: #f5f5f7; color: #333; font-size: 18px; cursor: pointer; transition: background .15s ease; }
+        .qty-stepper .qty-btn:hover { background: #ececf1; }
+        .qty-stepper .quantity-input { width: 48px; height: 32px; border: 0; outline: 0; text-align: center; font-weight: 600; color: #333; background: #fff; -moz-appearance: textfield; }
+        .qty-stepper .quantity-input::-webkit-outer-spin-button,
+        .qty-stepper .quantity-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .product-card .product-info { text-align: left; display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+        .product-card .product-name { width: 100%; margin-bottom: 6px; }
+        .product-card .product-name a { display: inline-block; }
+        .product-card .product-image-container { width: 100%; overflow: hidden; }
+        .product-card .product-image-container a { display: block; width: 100%; }
+        .product-card .product-image { display: block; width: 100%; height: 200px; object-fit: contain; }
+        .price-area { width: 100%; }
+        .price-area .price-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; }
+        .cart-controls { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+        .btn.btn-full { width: 100%; }
+        /* Rating (match index.php) */
+        .rating { display:flex; align-items:center; gap:8px; margin: 2px 0 8px; width: 100%; }
+        .stars { position: relative; display: inline-block; }
+        .stars-bg, .stars-fill { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif; letter-spacing: 2px; }
+        .stars-bg { color: #d7dbe0; }
+        .stars-fill { position: absolute; left: 0; top: 0; white-space: nowrap; overflow: hidden; color: #f5a524; }
+        .rating-num { font-size: 13px; color:#6b7280; font-weight: 600; }
     </style>
-</head>
-<body>
-    <!-- Header section -->
-    <header class="header">
-        <div class="logo-area">
-            <img src="uploads/flute_logo.png" alt="Logo da Loja" class="logo">
-            <h1 class="site-title">Flute Incensos</h1>
-        </div>
-        <nav class="main-nav">
-            <a href="produtos.php" class="nav-link">Início</a>
-            <a href="#" class="nav-link">Sobre</a>
-            <a href="#" class="nav-link">Contato</a>
-            
-            <?php if (usuarioEstaLogado()): ?>
-                <div class="cart-icon">
-                    <a href="carrinho-pagina.php" class="btn btn-cart">
-                        🛒 Carrinho
-                        <span class="cart-count" id="cart-count">0</span>
-                    </a>
-                </div>
-                <span class="nav-link">Olá, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
-                <a href="logout.php" class="btn">Sair</a>
-            <?php else: ?>
-                <a href="login.html" class="btn btn-cart">Login</a>
-            <?php endif; ?>
-        </nav>
-    </header>
-
-    <!-- Main content -->
-    <div class="main-container">
-        <div class="category-header">
-            <h1 class="category-title">Clove Brand</h1>
-            <p class="category-description">
-                Nossa linha premium Clove Brand oferece uma seleção especial de incensos com fragrâncias 
-                únicas e envolventes. Cada aroma é cuidadosamente desenvolvido para criar uma atmosfera 
-                de tranquilidade e bem-estar, perfeita para momentos de meditação e relaxamento.
-            </p>
-        </div>
-
-        <div class="toolbar">
-            <input id="search-input" type="search" class="search-input" placeholder="Buscar fragrância..." aria-label="Buscar fragrância" />
-        </div>
-
-        <div class="variations-grid" id="grid">
-            <?php foreach ($cloveBrandProducts as $produto): 
-                $nomeSemIncenso = str_replace('Incenso ', '', $produto['nome']); // Remove "Incenso " do nome
-            ?>
-                <div class="variation-card" data-name="<?php echo mb_strtolower($nomeSemIncenso, 'UTF-8'); ?>">
-                    <div class="product-image-container">
-                        <img 
-                            src="<?php echo getImagePath($nomeSemIncenso); ?>" 
-                            alt="<?php echo htmlspecialchars($produto['nome']); ?>"
-                            loading="lazy"
-                            class="product-image"
-                        >
-                    </div>
-                    <h2 class="product-name"><?php echo htmlspecialchars($nomeSemIncenso); ?></h2>
-                    <span class="chip">Clove Brand</span>
-                    
-                    <?php if (usuarioEstaLogado()): ?>
-                        <div class="price-area">
-                            <div class="price">
-                                R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
-                            </div>
-                            <div class="cart-controls">
-                                <input type="number" min="1" value="1" 
-                                    class="quantity-input"
-                                    id="qty_<?php echo $produto['id']; ?>">
-                                <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($nomeSemIncenso); ?>')" 
-                                        class="btn btn-cart">
-                                    Adicionar ao Carrinho
-                                </button>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="price-restricted">
-                            <p>Faça login para ver o preço</p>
-                            <a href="login.html" class="btn btn-cart">Login</a>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-    <!-- Footer section -->
-    <footer class="footer">
-        <p>&copy; 2025 Flute Incensos. Todos os direitos reservados.</p>
-    </footer>
-
-    <!-- JavaScript for cart functionality -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
+        const USER_LOGGED_IN = <?php echo usuarioEstaLogado() ? 'true' : 'false'; ?>;
+        // Novo script para o cabeçalho (menu mobile e dropdowns)
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const mainNav = document.getElementById('main-nav');
+            const backdrop = document.getElementById('backdrop');
+
+            if (menuToggle && mainNav && backdrop) {
+                const openMenu = () => {
+                    mainNav.classList.add('open');
+                    backdrop.classList.add('open');
+                    menuToggle.setAttribute('aria-expanded', 'true');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                const closeMenu = () => {
+                    mainNav.classList.remove('open');
+                    backdrop.classList.remove('open');
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
+                    // Fecha submenus abertos no mobile
+                    document.querySelectorAll('.main-nav .dropdown.open').forEach(d => d.classList.remove('open'));
+                };
+
+                menuToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (mainNav.classList.contains('open')) {
+                        closeMenu();
+                    } else {
+                        openMenu();
+                    }
+                });
+
+                backdrop.addEventListener('click', closeMenu);
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && mainNav.classList.contains('open')) {
+                        closeMenu();
+                    }
+                });
+            }
+
+            // Lógica de dropdown para o menu mobile (drawer)
+            const dropdownsInNav = document.querySelectorAll('.main-nav .nav-item.dropdown');
+            dropdownsInNav.forEach(dropdown => {
+                const link = dropdown.querySelector('a');
+                link.addEventListener('click', function(e) {
+                    if (window.matchMedia('(max-width: 768px)').matches && mainNav.classList.contains('open')) {
+                        e.preventDefault();
+                        dropdown.classList.toggle('open');
+                    }
+                });
+            });
+            atualizarContadorCarrinho();
+            inicializarFavoritos();
+        });
+        // Mantém o ícone do carrinho consistente entre abas/páginas
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'cart_updated') {
+                atualizarContadorCarrinho();
+            }
+        });
+        window.addEventListener('pageshow', atualizarContadorCarrinho);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) atualizarContadorCarrinho(); });
+        
+        // Função para atualizar o contador do carrinho
+        function atualizarContadorCarrinho() {
+            fetch('contar_itens_carrinho.php')
+                .then(response => response.json())
+                .then(data => {
+                    const contador = document.querySelector('.cart-count');
+                    if (contador) {
+                        contador.textContent = data.quantidade || '0';
+                        contador.style.display = (data.quantidade && Number(data.quantidade) > 0) ? 'flex' : 'none';
+                    }
+                })
+                .catch(error => console.error('Erro ao atualizar contador:', error));
+        }
+
+        // Função para exibir mensagens
         function mostrarMensagem(mensagem, tipo) {
             const msg = document.createElement('div');
             msg.className = `cart-message ${tipo}`;
             msg.textContent = mensagem;
             document.body.appendChild(msg);
 
+            // Anima a entrada
             setTimeout(() => msg.style.opacity = '1', 100);
+
+            // Remove a mensagem após 3 segundos
             setTimeout(() => {
                 msg.style.opacity = '0';
                 setTimeout(() => msg.remove(), 300);
             }, 3000);
         }
 
-        async function adicionarAoCarrinho(produtoId, variacao) {
-            // Normalize the variation name for the quantity input ID
-            const normalizedVariacao = variacao.replace(/\s+/g, '_');
-            const quantityId = `qty_${produtoId}`;
-            const quantityInput = document.getElementById(quantityId);
-            
-            if (!quantityInput) {
-                console.error('Elemento de quantidade não encontrado:', quantityId);
-                mostrarMensagem('Erro ao adicionar ao carrinho: quantidade não encontrada', 'error');
+        // Função global para adicionar produto ao carrinho
+        window.adicionarAoCarrinho = async function(produtoId, nomeProduto) {
+            const quantityInput = document.getElementById(`qty_${produtoId}`);
+            const quantidade = quantityInput ? parseInt(quantityInput.value, 10) : 1;
+
+            if (quantidade < 1) {
+                mostrarMensagem('Quantidade deve ser pelo menos 1', 'error');
                 return;
             }
-
-            const quantidade = quantityInput.value;
 
             try {
                 const response = await fetch('adicionar_ao_carrinho.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `produto_id=${produtoId}&quantidade=${quantidade}&variacao=${encodeURIComponent(variacao)}`
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ produto_id: produtoId, quantidade })
                 });
 
-                const result = await response.text();
+                const data = await response.json();
                 
-                if (response.ok) {
-                    mostrarMensagem(`${variacao} adicionado ao carrinho!`, 'success');
+                if (data.sucesso) {
+                    mostrarMensagem(`${nomeProduto} adicionado ao carrinho!`, 'success');
                     atualizarContadorCarrinho();
+                    pulseCartIcon();
+                    try { localStorage.setItem('cart_updated', Date.now().toString()); } catch (e) {}
                 } else {
-                    mostrarMensagem('Erro ao adicionar ao carrinho', 'error');
+                    mostrarMensagem(data.erro || 'Erro ao adicionar produto', 'error');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                mostrarMensagem('Erro de conexão', 'error');
+                mostrarMensagem('Erro ao adicionar produto ao carrinho', 'error');
             }
-        }
+        };
 
-        async function atualizarContadorCarrinho() {
-            try {
-                const response = await fetch('get_carrinho_count.php');
-                const count = await response.text();
-                const cartCountElement = document.getElementById('cart-count');
-                if (cartCountElement) {
-                    cartCountElement.textContent = count;
-                }
-            } catch (error) {
-                console.error('Erro ao atualizar contador do carrinho:', error);
-            }
-        }
-
-        // Atualizar contador do carrinho ao carregar a página
+        // Atualizar contador do carrinho quando a página carrega
         document.addEventListener('DOMContentLoaded', atualizarContadorCarrinho);
 
-        // Busca/filtragem de cards por nome
-        const searchInput = document.getElementById('search-input');
-        const grid = document.getElementById('grid');
-        if (searchInput && grid) {
-            searchInput.addEventListener('input', () => {
-                const q = searchInput.value.trim().toLowerCase();
-                const cards = grid.querySelectorAll('.variation-card');
-                cards.forEach(card => {
-                    const name = card.getAttribute('data-name') || '';
-                    card.style.display = name.includes(q) ? '' : 'none';
-                });
+        function pulseCartIcon() {
+            const cart = document.querySelector('.cart-mini');
+            if (!cart) return;
+            cart.classList.remove('cart-bump');
+            void cart.offsetWidth;
+            cart.classList.add('cart-bump');
+            setTimeout(() => cart.classList.remove('cart-bump'), 500);
+        }
+
+        // Favoritos (igual index.php)
+        async function inicializarFavoritos(){
+            let ids = new Set();
+            try {
+                const res = await fetch('favoritos.php?action=list', { credentials: 'same-origin' });
+                const data = await res.json();
+                // Aceita múltiplos formatos: {sucesso, ids}, {ids}, array direto, {favoritos}
+                let raw = [];
+                if (Array.isArray(data)) raw = data;
+                else if (data && Array.isArray(data.ids)) raw = data.ids;
+                else if (data && Array.isArray(data.favoritos)) raw = data.favoritos;
+                else if (data && data.sucesso && Array.isArray(data.ids)) raw = data.ids;
+                else console.warn('Formato inesperado de favoritos', data);
+                ids = new Set(raw.map(Number));
+            } catch(e) {
+                console.warn('Falha ao obter lista de favoritos. Continuando sem pré-estado.', e);
+            }
+            // Sempre vincula os listeners, mesmo sem lista
+            document.querySelectorAll('.favorite-icon[data-produto-id]').forEach(el=>{
+                const id = Number(el.getAttribute('data-produto-id'));
+                const isFav = ids.has(id);
+                if (isFav) el.classList.add('active');
+                el.setAttribute('role', 'button');
+                el.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+                el.setAttribute('title', isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+                // evita listeners duplicados
+                el._favBound && el.removeEventListener('click', el._favBound);
+                el._favBound = ()=>toggleFavorito(el, id);
+                el.addEventListener('click', el._favBound);
             });
+        }
+        async function toggleFavorito(el, produtoId){
+            if (!USER_LOGGED_IN) { window.location.href = 'login.html'; return; }
+            const adding = !el.classList.contains('active');
+            try {
+                const resp = await fetch('favoritos.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action: adding ? 'add' : 'remove', produto_id: produtoId }) });
+                const data = await resp.json();
+                if (data && data.sucesso) {
+                    el.classList.toggle('active', adding);
+                    el.setAttribute('aria-pressed', adding ? 'true' : 'false');
+                    el.setAttribute('title', adding ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+                    mostrarMensagem(adding ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.', 'success');
+                } else {
+                    mostrarMensagem((data && data.erro) ? data.erro : 'Erro ao atualizar favorito.', 'error');
+                }
+            } catch (e) { mostrarMensagem('Erro ao atualizar favorito.', 'error'); }
         }
     </script>
 
+</head>
+<body>
+    <!-- Cabeçalho com logo, busca e ações -->
+    <header class="site-header">
+        <div class="header-top-bar">
+            <div class="container">
+                <p>Seja um distribuidor Flute! Entre em contato conosco.</p>
+                <a href="central-atendimento.php" class="action-link">Central de Atendimento</a>
+            </div>
+        </div>
+        <div class="header-main">
+            <div class="container">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+                    <span></span>
+                </button>
+
+                <div class="logo-area">
+                    <a href="index.php">
+                        <img src="uploads/flute_logo.png" alt="Logo Flute Incensos" class="logo">
+                    </a>
+                </div>
+
+                <div class="search-bar-area">
+                    <form class="search-bar" action="buscar.php" method="get">
+                        <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos">
+                        <button type="submit" aria-label="Buscar" class="search-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="header-actions-area">
+                    <?php if (usuarioEstaLogado()): ?>
+                        <a href="minha-conta.php" class="action-icon user-account" title="Minha Conta">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Olá, <?php echo htmlspecialchars(explode(' ', $_SESSION['user_name'])[0]); ?></span>
+                        </a>
+                        <a href="logout.php" class="action-link">Sair</a>
+                    <?php else: ?>
+                        <a href="login.html" class="action-icon user-account" title="Entrar ou Cadastrar">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Entrar</span>
+                        </a>
+                    <?php endif; ?>
+
+                    <a href="carrinho-pagina.php" class="action-icon cart-mini" title="Carrinho">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        <span class="cart-count" id="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <nav class="main-nav" id="main-nav">
+            <div class="container">
+                <ul class="nav-list">
+                    <li><a href="index.php" class="nav-link">Início</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="produtos.php" class="nav-link">Produtos</a>
+                        <div class="dropdown-content">
+                            <a href="regular-square.php?cat=regular-square">Regular Square</a>
+                            <a href="masala-square.php?cat=masala-square">Masala Square</a>
+                            <a href="xamanico-tube.php?cat=incenso-xamanico">Incenso Xamânico Tube</a>
+                            <a href="cycle-brand-regular.php?cat=cycle-brand-regular">Cycle Brand Regular</a>
+                            <a href="long-square.php?cat=long-square">Long Square</a>
+                            <a href="cycle-brand-rectangle.php?cat=cycle-brand-rectangle">Cycle Brand Rectangle</a>
+                            <a href="masala-small.php?cat=masala-small">Masala Small Packet</a>
+                            <a href="clove-brand.php?cat=clove-brand">Clove Brand</a>
+                            <a href="produtos.php">Ver Todos</a>
+                        </div>
+                    </li>
+                    <li><a href="sobre.php" class="nav-link">Sobre Nós</a></li>
+                    <li><a href="contato.php" class="nav-link">Contato</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="backdrop" id="backdrop"></div>
+    </header>
+
+    <!-- Slider main container -->
+    <div class="swiper-container banner-slider">
+        <div class="swiper-wrapper">
+            <!-- Slides -->
+            <div class="swiper-slide"><img src="uploads/banners/banner-clove.png" alt="Banner Flute Incense Clove"></div>
+            <div class="swiper-slide"><img src="uploads/banners/banner-masala.png" alt="Banner Flute Incense Masala"></div>
+            <div class="swiper-slide"><img src="uploads/banners/banner-tulasi.png" alt="Banner Flute Incense Tulasi"></div>
+        </div>
+    </div>
+
+    <!-- Container principal com sidebar e produtos -->
+    <div class="main-container">
+        <main class="products-area">
+            <div class="main-text2">
+                <h2>Clove Brand</h2>
+                <p>Nossa linha premium Clove Brand oferece uma seleção especial de incensos com fragrâncias únicas e envolventes.</p>
+            </div>
+
+            <div class="products-grid">
+                <?php foreach ($cloveBrandProducts as $produto): 
+                    // 1) Título padronizado (exibição, alt, WhatsApp, botão)
+                    $nomePadronizado = formatarTituloProduto($produto['categoria'], $produto['nome']);
+                    // 2) Variação para imagem (remove prefixos eventuais do nome original)
+                    $base = $produto['nome'];
+                    if (!empty($produto['categoria'])) { $base = str_ireplace($produto['categoria'] . ' -', '', $base); }
+                    $base = trim(str_replace(['"', '&quot;', "'"], '', $base));
+                    $variacaoParaImagem = str_ireplace('incenso', '', $base);
+                    $variacaoParaImagem = trim(str_replace(['"', '&quot;', "'"], '', $variacaoParaImagem));
+                    $linkProduto = 'produto.php?id=' . (int)$produto['id'];
+                ?>
+                <div class="product-card">
+                    <span class="favorite-icon" data-produto-id="<?php echo (int)$produto['id']; ?>" role="button" aria-label="Adicionar aos favoritos">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M12 21s-6.5-4.35-9.33-7.17C.63 11.79.63 8.21 2.67 6.17c2.04-2.04 5.34-2.04 7.38 0L12 8.12l1.95-1.95c2.04-2.04 5.34-2.04 7.38 0 2.04 2.04 2.04 5.62 0 7.66C18.5 16.65 12 21 12 21z" stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <div class="product-image-container">
+                        <?php if ($linkProduto): ?><a href="<?php echo $linkProduto; ?>" class="no-underline" aria-label="Ver produto: <?php echo htmlspecialchars($nomePadronizado); ?>"><?php endif; ?>
+                        <img 
+                            src="<?php echo getImagePath($produto['categoria'], $variacaoParaImagem); ?>" 
+                            alt="<?php echo htmlspecialchars($nomePadronizado); ?>"
+                            class="product-image"
+                        >
+                        <?php if ($linkProduto): ?></a><?php endif; ?>
+                    </div>
+                    <div class="product-info">
+                        <h2 class="product-name">
+                            <?php if ($linkProduto): ?><a href="<?php echo $linkProduto; ?>" class="no-underline"><?php endif; ?>
+                            <?php echo htmlspecialchars($nomePadronizado); ?>
+                            <?php if ($linkProduto): ?></a><?php endif; ?>
+                        </h2>
+                        <?php 
+                          $rating = 4.5 + (($produto['id'] % 5) * 0.1);
+                          $ratingPct = min(100, max(0, ($rating / 5) * 100));
+                        ?>
+                        <div class="rating" aria-label="Avaliação: <?php echo number_format($rating,1,',','.'); ?> de 5">
+                            <div class="stars" role="img" aria-hidden="true">
+                                <div class="stars-bg">★★★★★</div>
+                                <div class="stars-fill" style="width: <?php echo number_format($ratingPct,0,'.',''); ?>%">★★★★★</div>
+                            </div>
+                            <span class="rating-num"><?php echo number_format($rating,1,',','.'); ?></span>
+                        </div>
+                        <?php if (usuarioEstaLogado()): ?>
+                            <div class="price-area">
+                                <div class="price-row">
+                                    <div class="price">
+                                        <span class="currency">R$</span> <strong class="amount"><?php echo number_format($produto['preco'], 2, ',', '.'); ?></strong>
+                                    </div>
+                                    <div class="qty-stepper" data-id="<?php echo (int)$produto['id']; ?>">
+                                        <button type="button" class="qty-btn minus" aria-label="Diminuir quantidade">&minus;</button>
+                                        <input type="number" id="qty_<?php echo $produto['id']; ?>" class="quantity-input" value="1" min="1" inputmode="numeric" pattern="[0-9]*" aria-label="Quantidade">
+                                        <button type="button" class="qty-btn plus" aria-label="Aumentar quantidade">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cart-controls">
+                                <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($nomePadronizado); ?>')" 
+                                        class="btn btn-cart btn-full">
+                                    Adicionar ao carrinho
+                                </button>
+                                <a href="https://wa.me/5548996107541?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20produto%3A%20<?php echo urlencode($nomePadronizado); ?>" target="_blank" class="btn btn-whatsapp btn-full">
+                                    Comprar pelo WhatsApp
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <div class="cart-controls">
+                                <a href="login.html" class="btn btn-cart">Ver preço</a>
+                                <a href="https://wa.me/5548996107541?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20produto%3A%20<?php echo urlencode($nomePadronizado); ?>" target="_blank" class="btn btn-whatsapp">
+                                    Comprar pelo WhatsApp
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </main>
+    </div>
+
+    <?php include __DIR__ . '/includes/footer.php'; ?>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var swiper = new Swiper('.banner-slider', {
+                loop: true,
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });
+        });
+    </script>
+
+    <script>
+      // Qty stepper interactions (match index behavior)
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest('.qty-btn');
+        if (!btn) return;
+        var stepper = btn.closest('.qty-stepper');
+        if (!stepper) return;
+        var input = stepper.querySelector('.quantity-input');
+        if (!input) return;
+        var val = parseInt(input.value || '1', 10);
+        if (btn.classList.contains('minus')) { val = Math.max(1, val - 1); }
+        if (btn.classList.contains('plus')) { val = val + 1; }
+        input.value = val;
+      });
+      document.addEventListener('input', function(e){
+        if (!e.target.classList.contains('quantity-input')) return;
+        var v = parseInt(e.target.value || '1', 10);
+        if (isNaN(v) || v < 1) v = 1;
+        e.target.value = v;
+      });
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

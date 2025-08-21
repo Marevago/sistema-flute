@@ -10,7 +10,40 @@
     --border-color: #e0e0e0;
     --font-main: 'Poppins', sans-serif;
     --font-serif: 'EB Garamond', serif;
+    /* Cor da barra de categorias/menu principal (levemente mais escuro que o header) */
+    --cat-bar-bg: #f5f5f5;
 }
+
+/* Previni overflow horizontal em qualquer breakpoint */
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Garante que sliders não "estourem" a largura no mobile */
+.swiper,
+.swiper-container,
+.banner-slider,
+.benefits-slider {
+    overflow: hidden;
+}
+
+/* Links invisíveis nos cards de produto (mantém aparência original) */
+.products-grid .product-card a.no-underline,
+.product-card a.no-underline,
+.products-grid .product-card a.no-underline:visited,
+.product-card a.no-underline:visited,
+.products-grid .product-card a.no-underline:hover,
+.product-card a.no-underline:hover,
+.products-grid .product-card a.no-underline:focus,
+.product-card a.no-underline:focus,
+.products-grid .product-card a.no-underline:active,
+.product-card a.no-underline:active {
+    text-decoration: none !important;
+    color: inherit !important;
+}
+.product-card a.no-underline:focus { outline: none; }
 
 /* Garantia extra no desktop grande (>=1024px) */
 @media (min-width: 1024px) {
@@ -18,7 +51,7 @@
         background-color: var(--cat-bar-bg) !important;
         display: block;
     }
-    .site-header .main-nav .nav-link { color: #fff !important; }
+    .site-header .main-nav .nav-link { color: #222 !important; }
 }
 
 .container {
@@ -75,7 +108,7 @@
     gap: 20px;
 }
 
-.logo-area .logo {
+.site-header .logo-area .logo {
     max-height: 50px;
     display: block;
 }
@@ -169,7 +202,7 @@
 .nav-link {
     display: block;
     padding: 15px 0;
-    color: white;
+    color: #222;
     text-decoration: none;
     font-weight: 500;
     position: relative;
@@ -182,7 +215,7 @@
     left: 0;
     width: 0;
     height: 2px;
-    background-color: white;
+    background-color: #222;
     transition: width 0.3s ease;
 }
 
@@ -224,37 +257,42 @@
     background-color: #f1f1f1;
 }
 
-/* Estilos Mobile */
+/* Estilos Mobile - Ícone do Menu Hambúrguer (Final e Definitivo) */
 .menu-toggle {
-    display: none; /* Oculto no desktop */
-    background: none;
-    border: none !important;
+    display: none; /* Oculto por padrão, visível em media query */
+    background: transparent;
+    border: none;
     cursor: pointer;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; 
 }
 
 .menu-toggle span {
     display: block;
-    width: 100%;
+    position: relative;
+    width: 24px;
     height: 2px;
     background-color: var(--text-color);
-    position: absolute;
-    left: 0;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease-in-out;
+}
+
+.menu-toggle.open span {
+    background-color: transparent; /* Oculta a barra do meio no 'X' */
 }
 
 .menu-toggle span::before,
 .menu-toggle span::after {
     content: '';
     position: absolute;
-    width: 100%;
-    height: 2px;
-    background-color: var(--text-color);
     left: 0;
-    transition: all 0.3s ease;
+    width: 100%;
+    height: 100%;
+    background-color: var(--text-color);
+    transition: all 0.2s ease-in-out;
 }
 
 .menu-toggle span::before {
@@ -263,6 +301,15 @@
 
 .menu-toggle span::after {
     top: 8px;
+}
+
+/* Animação para o 'X' */
+.menu-toggle.open span::before {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.menu-toggle.open span::after {
+    transform: translateY(-8px) rotate(-45deg);
 }
 
 .backdrop {
@@ -276,12 +323,32 @@
 }
 
 @media (max-width: 768px) {
-    .header-top-bar, .main-nav {
-        display: none; /* Oculta barra superior e navegação principal */
+    .header-top-bar {
+        display: none;
+    }
+
+    .site-header .main-nav {
+        display: none; /* Oculta a navegação principal no mobile */
+    }
+
+    .site-header .main-nav {
+        position: absolute;
+        top: 100%; /* Posiciona abaixo do header-main */
+        left: 0;
+        right: 0;
+        background-color: #fff; /* Fundo branco para não ver o conteúdo atrás */
+        z-index: 1000; /* Garante que o menu fique na frente */
+        display: none;
+        border-top: 1px solid #eee;
+    }
+
+    .site-header .main-nav.open {
+        display: block;
     }
 
     .header-main .container {
         justify-content: space-between;
+        align-items: center; /* Centraliza verticalmente os itens */
     }
 
     .search-bar-area {
@@ -362,7 +429,7 @@
     --borda-radius: 8px;
     --header-top-height: 72px;
     --cat-bar-height: 44px;
-    --cat-bar-bg: #6b4a2b;
+    --cat-bar-bg: #f5f5f5;
 }
 
 /* ===================== */
@@ -721,13 +788,13 @@ body {
 
     /* Garante links brancos no desktop (sem alterar mobile) */
     .main-nav .nav-link {
-        color: #fff;
+        color: #222;
         padding: 12px 0;
         font-weight: 600;
     }
 
     .main-nav .nav-link::after {
-        background-color: #fff;
+        background-color: #222;
         bottom: 6px;
     }
 

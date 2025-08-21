@@ -2,69 +2,235 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Cadastro - Sistema de Atacado</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=1.2">
     <style>
+        :root {
+            --bg: #f7f7f8;
+            --card-bg: #ffffff;
+            --text: #111;
+            --muted: #666;
+            --brand: #ffd000;
+            --brand-hover: #f4e25a;
+            --radius: 12px;
+            --shadow: 0 10px 20px rgba(0,0,0,0.10);
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { height: 100%; }
+        html { -webkit-text-size-adjust: 100%; }
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
+            color: var(--text);
+            background-color: var(--bg);
+            background-image: url('uploads/background04.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            background-attachment: fixed;
         }
-        .cadastro-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        .page {
+            min-height: 100dvh;
+            padding: calc(var(--header-top-height, 72px) + 40px) max(env(safe-area-inset-right), 12px) 0 max(env(safe-area-inset-left), 12px);
+            display: grid;
+            align-content: center;
+            justify-items: center;
+            gap: 8px;
+            position: relative;
+            margin-top: 0;
+        }
+        .logo-area { display: flex; align-items: center; justify-content: center; margin-top: 48px; margin-bottom: 36px; }
+        .logo { width: 220px; max-width: 70vw; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
+
+        .login-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 340px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 14px;
+            backdrop-filter: saturate(105%) blur(1px);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .login-title { font-family: "EB Garamond", serif; font-size: 24px; text-align: center; margin: 0 0 14px; letter-spacing: .2px; }
+        form { display: grid; gap: 10px; }
+        label { font-size: 13px; color: var(--muted); }
+        .field { display: grid; gap: 6px; }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%; height: 44px; padding: 0 10px; border: 1px solid #e3e3e6; border-radius: 8px; font-size: 15px; background: #fff; outline: none;
         }
-        input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+        input::placeholder { color: #9b9ba1; }
+        button[type="submit"] {
+            height: 46px; border: none; border-radius: 10px; background: var(--brand); color: #111; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.12);
         }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+        button[type="submit"]:hover { background: var(--brand-hover); }
+        .login-link { text-align: center; margin-top: 8px; font-size: 14px; }
+        .login-link a { color: #1a73e8; text-decoration: none; }
+        .login-link a:hover { text-decoration: underline; }
+        /* Remover busca deste header em todas as larguras */
+        .search-bar-area { display: none !important; }
+        /* Header principal: apenas ações à direita (sem busca) */
+        .site-header .header-main .container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 16px !important;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .login-link {
-            text-align: center;
-            margin-top: 15px;
+        .site-header .menu-toggle { display: none !important; }
+        .site-header .header-actions-area { display: flex !important; align-items: center !important; gap: 14px; }
+
+        /* Footer básico */
+        .site-footer { background: rgba(255,255,255,0.9); border-top: 1px solid #eee; padding: 18px 0; margin-top: 0; }
+        .site-footer .container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+        .site-footer p { margin: 0; color: #555; font-size: 13px; }
+        .site-footer .footer-links { display: flex; gap: 14px; }
+        .site-footer .footer-links a { color: #555; text-decoration: none; font-size: 13px; }
+        .site-footer .footer-links a:hover { text-decoration: underline; }
+
+        @media (min-width: 768px) {
+            .page { padding-top: calc(var(--header-top-height, 72px) + 8px); align-content: start; }
+            .logo { width: 260px; }
+            .logo-area { margin-top: 8px; margin-bottom: 12px; }
+            .login-container { max-width: 360px; padding: 16px; }
+            .login-title { font-size: 26px; }
         }
     </style>
 </head>
 <body>
-    <div class="cadastro-container">
-        <h2>Criar Nova Conta</h2>
-        <form action="cadastro.php" method="POST">
-            <input type="text" name="nome" placeholder="Seu nome completo" required>
-            <input type="email" name="email" placeholder="Seu e-mail" required>
-            <input type="password" name="senha" placeholder="Crie uma senha" required>
-            <input type="password" name="confirma_senha" placeholder="Confirme sua senha" required>
-            <button type="submit">Cadastrar</button>
-        </form>
-        <div class="login-link">
-            <p>Já tem conta? <a href="login.html">Faça login aqui</a></p>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-top-bar">
+            <div class="container">
+                <p>Seja um distribuidor Flute! Entre em contato conosco.</p>
+                <a href="central-atendimento.php" class="action-link">Central de Atendimento</a>
+            </div>
         </div>
-    </div>
+        <div class="header-main">
+            <div class="container">
+                <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false"><span></span></button>
+                <div class="search-bar-area">
+                    <form class="search-bar" action="buscar.php" method="get">
+                        <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos">
+                        <button type="submit" aria-label="Buscar" class="search-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </button>
+                    </form>
+                </div>
+                <div class="header-actions-area">
+                    <a href="minha-conta.php" class="action-icon user-account" title="Minha Conta">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Minha Conta</span>
+                    </a>
+                    <a href="login.html" class="action-link">Entrar</a>
+                    <a href="carrinho-pagina.php" class="action-icon cart-mini" title="Carrinho">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        <span class="cart-count" id="cart-count">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <nav class="main-nav" id="main-nav">
+            <div class="container">
+                <ul class="nav-list">
+                    <li><a href="index.php" class="nav-link">Início</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="produtos.php" class="nav-link">Produtos</a>
+                        <div class="dropdown-content">
+                            <a href="regular-square.php?cat=regular-square">Regular Square</a>
+                            <a href="masala-square.php?cat=masala-square">Masala Square</a>
+                            <a href="xamanico-tube.php?cat=incenso-xamanico">Incenso Xamânico Tube</a>
+                            <a href="cycle-brand-regular.php?cat=cycle-brand-regular">Cycle Brand Regular</a>
+                            <a href="long-square.php?cat=long-square">Long Square</a>
+                            <a href="cycle-brand-rectangle.php?cat=cycle-brand-rectangle">Cycle Brand Rectangle</a>
+                            <a href="masala-small.php?cat=masala-small">Masala Small Packet</a>
+                            <a href="clove-brand.php?cat=clove-brand">Clove Brand</a>
+                            <a href="produtos.php">Ver Todos</a>
+                        </div>
+                    </li>
+                    <li><a href="sobre.php" class="nav-link">Sobre Nós</a></li>
+                    <li><a href="contato.php" class="nav-link">Contato</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="backdrop" id="backdrop"></div>
+    </header>
+
+    <main class="page">
+        <div class="logo-area">
+            <img class="logo" src="uploads/flute_logo.png" alt="Logo da empresa">
+        </div>
+        <div class="login-container" role="form" aria-label="Formulário de cadastro">
+            <h1 class="login-title">Criar Nova Conta</h1>
+            <form action="cadastro.php" method="POST" novalidate>
+                <div class="field">
+                    <label for="nome">Nome completo</label>
+                    <input id="nome" type="text" name="nome" placeholder="Seu nome completo" required autocomplete="name">
+                </div>
+                <div class="field">
+                    <label for="email">E-mail</label>
+                    <input id="email" type="email" name="email" placeholder="Seu e-mail" required autocomplete="email">
+                </div>
+                <div class="field">
+                    <label for="senha">Senha</label>
+                    <input id="senha" type="password" name="senha" placeholder="Crie uma senha" required autocomplete="new-password">
+                </div>
+                <div class="field">
+                    <label for="confirma_senha">Confirmar senha</label>
+                    <input id="confirma_senha" type="password" name="confirma_senha" placeholder="Confirme sua senha" required autocomplete="new-password">
+                </div>
+                <button type="submit">Cadastrar</button>
+            </form>
+            <div class="login-link">
+                <p>Já tem conta? <a href="login.html">Faça login aqui</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Flute Incensos. Todos os direitos reservados.</p>
+            <div class="footer-links">
+                <a href="sobre.php">Sobre Nós</a>
+                <a href="contato.php">Contato</a>
+                <a href="central-atendimento.php">Central de Atendimento</a>
+                <a href="politica-privacidade.php">Política de Privacidade</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    (function(){
+        const menuToggle = document.getElementById('menu-toggle');
+        const mainNav = document.getElementById('main-nav');
+        const backdrop = document.getElementById('backdrop');
+        if (!menuToggle || !mainNav || !backdrop) return;
+
+        function openMenu(){
+            menuToggle.classList.add('open');
+            mainNav.classList.add('open');
+            backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMenu(){
+            menuToggle.classList.remove('open');
+            mainNav.classList.remove('open');
+            backdrop.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        function toggleMenu(){
+            if (mainNav.classList.contains('open')) closeMenu(); else openMenu();
+        }
+
+        menuToggle.addEventListener('click', toggleMenu);
+        backdrop.addEventListener('click', closeMenu);
+        mainNav.addEventListener('click', (e)=>{ if (e.target.closest('a')) closeMenu(); });
+        document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeMenu(); });
+    })();
+    </script>
 </body>
 </html>

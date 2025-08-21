@@ -2,7 +2,7 @@
 // carrinho.php
 class CarrinhoHandler {
     private $conn;
-    private $valor_minimo = 300.00;
+    private $valor_minimo = 600.00;
 
     public function __construct() {
         $database = new Database();

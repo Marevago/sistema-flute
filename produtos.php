@@ -2,50 +2,11 @@
 // Iniciamos a sessão para manter o usuário logado e suas informações do carrinho
 session_start();
 
-function getImagePath($variacao) {
-    // Array de substituição para caracteres acentuados
-    $caracteresEspeciais = array(
-        'á' => 'a', 'à' => 'a', 'ã' => 'a', 'â' => 'a',
-        'é' => 'e', 'è' => 'e', 'ê' => 'e',
-        'í' => 'i', 'ì' => 'i', 'î' => 'i',
-        'ó' => 'o', 'ò' => 'o', 'õ' => 'o', 'ô' => 'o',
-        'ú' => 'u', 'ù' => 'u', 'û' => 'u',
-        'ý' => 'y',
-        'ñ' => 'n',
-        'ç' => 'c',
-        'Á' => 'a', 'À' => 'a', 'Ã' => 'a', 'Â' => 'a',
-        'É' => 'e', 'È' => 'e', 'Ê' => 'e',
-        'Í' => 'i', 'Ì' => 'i', 'Î' => 'i',
-        'Ó' => 'o', 'Ò' => 'o', 'Õ' => 'o', 'Ô' => 'o',
-        'Ú' => 'u', 'Ù' => 'u', 'Û' => 'u',
-        'Ý' => 'y',
-        'Ñ' => 'n',
-        'Ç' => 'c'
-    );
-    
-    // Remove acentos e converte para ASCII
-    $imageName = strtr(mb_strtolower($variacao, 'UTF-8'), $caracteresEspeciais);
-    
-    // Substitui espaços por hífens
-    $imageName = str_replace(' ', '-', $imageName);
-    
-    // Remove caracteres que não sejam letras, números ou hífens
-    $imageName = preg_replace('/[^a-z0-9-]/', '', $imageName);
-    
-    // Define o caminho da imagem
-    $imagePath = "uploads/incensos/regular-square/{$imageName}.jpg";
 
-    // Adiciona timestamp para evitar cache
-    if (file_exists($imagePath)) {
-        $timestamp = filemtime($imagePath);
-        return $imagePath . "?v=" . $timestamp;
-    }
-    
-    return file_exists($imagePath) ? $imagePath : "uploads/incensos/default.jpg";
-}
 
 // Importamos nossas configurações e classes necessárias
 require_once 'config/database.php';
+require_once 'config/functions.php';
 require_once 'carrinho.php';
 
 // Função que verifica se o usuário está logado
@@ -56,28 +17,23 @@ function usuarioEstaLogado() {
 // Conectamos ao banco de dados
 $database = new Database();
 $conn = $database->getConnection();
-// Buscar produtos featured da Regular Square
+// Buscar produtos featured da Regular Square (sem depender de nomes específicos)
 $queryFeatured = "SELECT * FROM produtos 
                   WHERE categoria = 'Regular Square' 
                   AND tipo = 'produto'
-                  AND nome IN (
-                      'Incenso Alecrim',
-                      'Incenso Alfazema',
-                      'Incenso Canela',
-                      'Incenso Sândalo',
-                      'Incenso Lavanda',
-                      'Incenso Jasmim',
-                      'Incenso Rosa Branca',
-                      'Incenso Rosa Vermelha',
-                      'Incenso Patchuly',
-                      'Incenso Sete Ervas',
-                      'Incenso Mirra',
-                      'Incenso Arruda'
-                  )
                   ORDER BY nome";
 $stmtFeatured = $conn->prepare($queryFeatured);
 $stmtFeatured->execute();
 $featuredProducts = $stmtFeatured->fetchAll(PDO::FETCH_ASSOC);
+
+// Fallback: se nenhum produto retornar (possível mudança de nome de categoria no servidor),
+// exibe um conjunto geral de produtos disponíveis
+if (!$featuredProducts || count($featuredProducts) === 0) {
+    $queryFeaturedFallback = "SELECT * FROM produtos WHERE tipo = 'produto' ORDER BY nome LIMIT 12";
+    $stmtFeaturedFallback = $conn->prepare($queryFeaturedFallback);
+    $stmtFeaturedFallback->execute();
+    $featuredProducts = $stmtFeaturedFallback->fetchAll(PDO::FETCH_ASSOC);
+}
 
 $featuredRegularSquare = [
     'Alecrim',
@@ -120,27 +76,70 @@ if (usuarioEstaLogado()) {
     <title>Flute Incensos - Produtos</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=1.2">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
     <style>
-        /* Somente estilos do drawer/backdrop no mobile; não sobrescrever layout do header-top */
-        @media (max-width: 768px) {
-            .menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid #ddd; border-radius: 8px; background:#fff; }
-            .menu-toggle span { display:block; width:22px; height:2px; background:#333; position:relative; }
-            .menu-toggle span::before, .menu-toggle span::after { content:""; position:absolute; left:0; width:22px; height:2px; background:#333; }
-            .menu-toggle span::before { top:-7px; }
-            .menu-toggle span::after { top:7px; }
-            /* Off-canvas side menu */
-            .main-nav { position: fixed; top: 0; left: -100%; width: 80%; max-width: 320px; height: 100vh; background: #fff; padding: 20px; box-shadow: 2px 0 12px rgba(0,0,0,.15); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; z-index: 1001; }
-            .header-top.open ~ .main-nav { left: 0; }
-            .dropdown-content { position: static; display: none; box-shadow: none; border: 1px solid #eee; border-radius: 6px; }
-            .dropdown.open .dropdown-content { display: block; }
-            /* Backdrop */
-            .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; }
-            .header-top.open + .backdrop { display: block; }
+        /* Pequena animação no ícone do carrinho quando adicionar */
+        .cart-mini.cart-bump { animation: cart-bump 500ms ease; }
+        @keyframes cart-bump {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.15); }
+            60% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        /* Toast de feedback ao adicionar ao carrinho */
+        .cart-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: #333;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .cart-message.success { background: #2e7d32; }
+        .cart-message.error { background: #c62828; }
+        /* Favoritos (coração) */
+        .product-card { position: relative; }
+        .favorite-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 22px;
+            color: #b0b0b0;
+            transition: color .2s ease, transform .15s ease;
+            z-index: 2;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        .favorite-icon:hover { transform: scale(1.08); }
+        .favorite-icon.active { color: #e53935; }
+        /* Título principal com a mesma fonte do login (EB Garamond) */
+        .main-text2 h2 {
+            font-family: "EB Garamond", serif;
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+        /* Mobile: reduzir espaçamento entre linhas e deixar em negrito */
+        @media (max-width: 767px) {
+            .main-text2 h2 {
+                line-height: 1.15;
+                font-weight: 700;
+            }
         }
     </style>
+
     <script>
+        const USER_LOGGED_IN = <?php echo usuarioEstaLogado() ? 'true' : 'false'; ?>;
         // Novo script para o cabeçalho (menu mobile e dropdowns)
         document.addEventListener('DOMContentLoaded', function() {
             const menuToggle = document.getElementById('menu-toggle');
@@ -192,10 +191,65 @@ if (usuarioEstaLogado()) {
                     }
                 });
             });
+            // Atualiza contador ao carregar a página
+            atualizarContadorCarrinho();
+
+            // Inicializa estado dos favoritos (corações)
+            inicializarFavoritos();
         });
+
+        // Mantém o ícone do carrinho consistente entre abas/páginas
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'cart_updated') {
+                atualizarContadorCarrinho();
+            }
+        });
+        window.addEventListener('pageshow', atualizarContadorCarrinho);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) atualizarContadorCarrinho(); });
+        async function inicializarFavoritos() {
+            try {
+                const res = await fetch('favoritos.php?action=list', { credentials: 'same-origin' });
+                const data = await res.json();
+                if (!data || !data.sucesso) return;
+                const ids = new Set((data.ids || []).map(Number));
+                document.querySelectorAll('.favorite-icon[data-produto-id]')
+                    .forEach(el => {
+                        const id = Number(el.getAttribute('data-produto-id'));
+                        const isFav = ids.has(id);
+                        if (isFav) el.classList.add('active');
+                        el.setAttribute('role', 'button');
+                        el.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+                        el.setAttribute('title', isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+                        el.addEventListener('click', () => toggleFavorito(el, id));
+                    });
+            } catch (e) { /* silencioso */ }
+        }
+
+        async function toggleFavorito(el, produtoId) {
+            if (!USER_LOGGED_IN) { window.location.href = 'login.html'; return; }
+            const adding = !el.classList.contains('active');
+            try {
+                const resp = await fetch('favoritos.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: adding ? 'add' : 'remove', produto_id: produtoId })
+                });
+                const data = await resp.json();
+                if (data && data.sucesso) {
+                    el.classList.toggle('active', adding);
+                    el.setAttribute('aria-pressed', adding ? 'true' : 'false');
+                    el.setAttribute('title', adding ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
+                    mostrarMensagem(adding ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.', 'success');
+                } else {
+                    mostrarMensagem((data && data.erro) ? data.erro : 'Erro ao atualizar favorito.', 'error');
+                }
+            } catch (e) {
+                mostrarMensagem('Erro ao atualizar favorito.', 'error');
+            }
+        }
         // Função para atualizar o contador do carrinho
         function atualizarContadorCarrinho() {
-            fetch('get_carrinho_count.php')
+            fetch('contar_itens_carrinho.php')
                 .then(response => response.json())
                 .then(data => {
                     const contador = document.querySelector('.cart-count');
@@ -251,6 +305,8 @@ if (usuarioEstaLogado()) {
                 if (data.sucesso) {
                     mostrarMensagem(`${nomeProduto} adicionado ao carrinho!`, 'success');
                     atualizarContadorCarrinho();
+                    pulseCartIcon();
+                    try { localStorage.setItem('cart_updated', Date.now().toString()); } catch (e) {}
                 } else {
                     mostrarMensagem(data.erro || 'Erro ao adicionar ao carrinho.', 'error');
                 }
@@ -259,6 +315,17 @@ if (usuarioEstaLogado()) {
                 mostrarMensagem('Erro ao adicionar ao carrinho: ' + error.message, 'error');
             }
         };
+
+        function pulseCartIcon() {
+            const cart = document.querySelector('.cart-mini');
+            if (!cart) return;
+            cart.classList.remove('cart-bump');
+            // força reflow para reiniciar animação caso repetida rapidamente
+            // eslint-disable-next-line no-unused-expressions
+            void cart.offsetWidth;
+            cart.classList.add('cart-bump');
+            setTimeout(() => cart.classList.remove('cart-bump'), 500);
+        }
 
         // Função para atualizar preço quando uma variação é selecionada
         function atualizarPreco(select) {
@@ -369,165 +436,96 @@ if (usuarioEstaLogado()) {
                 
                 <div class="products-grid">
                     <?php foreach ($featuredProducts as $produto): 
-                        $nomeSemIncenso = str_replace('Incenso ', '', $produto['nome']); // Remove "Incenso " do nome
-                    ?>
+                        // 1. Preparar nome para EXIBIÇÃO
+                        $nomeDeExibicao = $produto['nome'];
+                        if (!empty($produto['categoria'])) {
+                            $nomeDeExibicao = str_ireplace($produto['categoria'] . ' -', '', $nomeDeExibicao);
+                        }
+                        $nomeDeExibicao = trim(str_replace(['"', '&quot;', "'"], '', $nomeDeExibicao));
+
+                        // Título padronizado para exibição/CTA (igual ao usado na loja)
+                        $tituloFormatado = formatarTituloProduto($produto['categoria'], $produto['nome']);
+
+                        // 2. Preparar variação para o CAMINHO DA IMAGEM (limpeza agressiva)
+                        $variacaoParaImagem = str_ireplace('incenso', '', $nomeDeExibicao);
+                        $variacaoParaImagem = str_replace(['"', '&quot;', "'"], '', $variacaoParaImagem);
+                        $variacaoParaImagem = trim($variacaoParaImagem);
+                        
+                        // 3. Link dinâmico para página de produto por ID
+                        $linkProduto = 'produto.php?id=' . (int)$produto['id'];
+                     ?>
                         <div class="product-card">
-                            <span class="favorite-icon">&hearts;</span>
+                            <span class="favorite-icon" data-produto-id="<?php echo (int)$produto['id']; ?>" role="button" aria-label="Adicionar aos favoritos">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M12 21s-6.5-4.35-9.33-7.17C.63 11.79.63 8.21 2.67 6.17c2.04-2.04 5.34-2.04 7.38 0L12 8.12l1.95-1.95c2.04-2.04 5.34-2.04 7.38 0 2.04 2.04 2.04 5.62 0 7.66C18.5 16.65 12 21 12 21z" stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
                             <div class="product-image-container">
+                                <?php if ($linkProduto): ?><a href="<?php echo $linkProduto; ?>" class="no-underline" aria-label="Ver produto: <?php echo htmlspecialchars($nomeDeExibicao); ?>"><?php endif; ?>
                                 <img 
-                                    src="<?php echo getImagePath($nomeSemIncenso); ?>" 
-                                    alt="<?php echo htmlspecialchars($produto['nome']); ?>"
-                                    class="product-image"
+                                    src="<?php echo getImagePath($produto['categoria'], $variacaoParaImagem); ?>" 
+                                     alt="<?php echo htmlspecialchars($nomeDeExibicao); ?>"
+                                     class="product-image"
                                 >
+                                <?php if ($linkProduto): ?></a><?php endif; ?>
                             </div>
                             <div class="product-info">
-                                <h2 class="product-name"><?php echo htmlspecialchars($nomeSemIncenso); ?></h2>
-                                
+                                <h2 class="product-name">
+                                    <?php if ($linkProduto): ?><a href="<?php echo $linkProduto; ?>" class="no-underline"><?php endif; ?>
+                                    <?php echo htmlspecialchars($tituloFormatado); ?>
+                                    <?php if ($linkProduto): ?></a><?php endif; ?>
+                                </h2>
+                                <?php 
+                                  // Avaliação simulada estável por produto: 4.5 a 4.9 (igual index.php)
+                                  $rating = 4.5 + (($produto['id'] % 5) * 0.1);
+                                  $ratingPct = min(100, max(0, ($rating / 5) * 100));
+                                ?>
+                                <div class="rating" aria-label="Avaliação: <?php echo number_format($rating,1,',','.'); ?> de 5">
+                                    <div class="stars" role="img" aria-hidden="true">
+                                        <div class="stars-bg">★★★★★</div>
+                                        <div class="stars-fill" style="width: <?php echo number_format($ratingPct,0,'.',''); ?>%">★★★★★</div>
+                                    </div>
+                                    <span class="rating-num"><?php echo number_format($rating,1,',','.'); ?></span>
+                                </div>
                                 <?php if (usuarioEstaLogado()): ?>
                                     <div class="price-area">
-                                        <div class="price">
-                                            R$ <?php echo number_format($produto['preco'], 2, ',', '.'); ?>
+                                        <div class="price-row">
+                                            <div class="price">
+                                                <span class="currency">R$</span> <strong class="amount"><?php echo number_format($produto['preco'], 2, ',', '.'); ?></strong>
+                                            </div>
+                                            <div class="qty-stepper" data-id="<?php echo (int)$produto['id']; ?>">
+                                                <button type="button" class="qty-btn minus" aria-label="Diminuir quantidade">&minus;</button>
+                                                <input type="number" id="qty_<?php echo $produto['id']; ?>" class="quantity-input" value="1" min="1" inputmode="numeric" pattern="[0-9]*" aria-label="Quantidade">
+                                                <button type="button" class="qty-btn plus" aria-label="Aumentar quantidade">+</button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="cart-controls">
-                                        <div class="quantity-selector">
-                                            <label for="qty_<?php echo $produto['id']; ?>">Qtd:</label>
-                                            <input type="number" id="qty_<?php echo $produto['id']; ?>" class="quantity-input" value="1" min="1">
-                                        </div>
-                                        <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($nomeSemIncenso); ?>')" 
-                                                class="btn btn-cart">
-                                            Ver Preço / Comprar
+                                        <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($tituloFormatado); ?>')" 
+                                                class="btn btn-cart btn-full">
+                                            Adicionar ao carrinho
                                         </button>
-                                        <a href="https://wa.me/5511999999999?text=Olá, tenho interesse no produto: <?php echo urlencode($nomeSemIncenso); ?>" target="_blank" class="btn btn-whatsapp">
+                                        <a href="https://wa.me/5548996107541?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20produto%3A%20<?php echo urlencode($tituloFormatado); ?>" target="_blank" class="btn btn-whatsapp btn-full">
                                             Comprar pelo WhatsApp
                                         </a>
                                     </div>
                                 <?php else: ?>
-                                    <div class="price-restricted">
-                                        <p>Faça login para ver o preço e comprar</p>
-                                        <a href="login.html" class="btn btn-cart">Login</a>
+                                    <div class="cart-controls">
+                                        <a href="login.html" class="btn btn-cart">Ver preço</a>
+                                        <a href="https://wa.me/5548996107541?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20produto%3A%20<?php echo urlencode($tituloFormatado); ?>" target="_blank" class="btn btn-whatsapp">
+                                            Comprar pelo WhatsApp
+                                        </a>
                                     </div>
                                 <?php endif; ?>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
+                     <?php endforeach; ?>
+                 </div>
 
         </main>
     </div>
 
-    <!-- Rodapé -->
-    <footer class="footer">
-        <p>&copy; 2025 Flute Incensos. Todos os direitos reservados.</p>
-    </footer>
-
-                            produto_id: produtoId,
-                            quantidade: quantidade,
-                            variacao: select ? decodeURIComponent(select.value.split('_')[1]) : null
-                        })
-                    });
-
-                    const data = await response.json();
-                    
-                    if (data.sucesso) {
-                        mostrarMensagem('Produto adicionado ao carrinho!', 'success');
-                        atualizarContadorCarrinho();
-                    } else {
-                        mostrarMensagem(data.erro, 'error');
-                    }
-                } catch (error) {
-                    mostrarMensagem('Erro ao adicionar ao carrinho', 'error');
-                }
-            }
-        }
-
-        // Função para atualizar o contador de itens no carrinho
-        async function atualizarContadorCarrinho() {
-            try {
-                const response = await fetch('contar_itens_carrinho.php');
-                const data = await response.json();
-                
-                const contadorElement = document.getElementById('cart-count');
-                if (contadorElement) {
-                    contadorElement.textContent = data.quantidade;
-                }
-            } catch (error) {
-                console.error('Erro ao atualizar contador:', error);
-            }
-        }
-
-        // Atualiza o contador quando a página carrega
-        document.addEventListener('DOMContentLoaded', atualizarContadorCarrinho);
-    </script>
-    <script>
-        // Função para adicionar produto ao carrinho
-        async function adicionarAoCarrinho(produtoId, nomeProduto) {
-            const quantityInput = document.getElementById(`qty_${produtoId}`);
-            const quantidade = quantityInput ? parseInt(quantityInput.value, 10) : 1;
-
-            if (quantidade < 1) {
-                mostrarMensagem('A quantidade deve ser de pelo menos 1.', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('adicionar_ao_carrinho.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        produto_id: produtoId,
-                        quantidade: quantidade
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.sucesso) {
-                    mostrarMensagem(`${nomeProduto} adicionado ao carrinho!`, 'success');
-                    atualizarContadorCarrinho();
-                } else {
-                    mostrarMensagem(data.erro || 'Erro ao adicionar ao carrinho.', 'error');
-                }
-            } catch (error) {
-                console.error('Erro ao adicionar ao carrinho:', error);
-                mostrarMensagem('Erro ao adicionar ao carrinho: ' + error.message, 'error');
-            }
-        }
-
-        // Função para exibir mensagens
-        function mostrarMensagem(mensagem, tipo) {
-            const msg = document.createElement('div');
-            msg.className = `cart-message ${tipo}`;
-            msg.textContent = mensagem;
-            document.body.appendChild(msg);
-
-            // Anima a entrada
-            setTimeout(() => msg.style.opacity = '1', 100);
-
-            // Remove a mensagem após 3 segundos
-            setTimeout(() => {
-                msg.style.opacity = '0';
-                setTimeout(() => msg.remove(), 300);
-            }, 3000);
-        }
-
-        // Função para atualizar o contador do carrinho
-        function atualizarContadorCarrinho() {
-            fetch('get_carrinho_count.php')
-                .then(response => response.json())
-                .then(data => {
-                    const contador = document.querySelector('.cart-count');
-                    if (contador) {
-                        contador.textContent = data.quantidade || '0';
-                        contador.style.display = data.quantidade > 0 ? 'flex' : 'none';
-                    }
-                })
-                .catch(error => console.error('Erro ao atualizar contador:', error));
-        }
-    </script>
-
+    <?php include __DIR__ . '/includes/footer.php'; ?>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
     <!-- Initialize Swiper -->
@@ -539,6 +537,77 @@ if (usuarioEstaLogado()) {
                 disableOnInteraction: false,
             }
         });
+    </script>
+    <!-- Styles to mirror index.php product card layout -->
+    <style>
+      /* Alinhamento à esquerda nos cards e largura total */
+      .product-card .product-info { text-align: left; display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+      .product-card .product-name { width: 100%; margin-bottom: 6px; }
+      .product-card .product-name a { display: inline-block; }
+      .price-area { width: 100%; }
+      .rating { width: 100%; }
+      .cart-controls { width: 100%; }
+      .cart-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .cart-controls { flex-direction: column; align-items: flex-start; }
+      .cart-controls .buy-row { display:flex; gap: 10px; align-items: center; }
+      .cart-controls .btn-whatsapp { margin-top: 6px; }
+      .qty-stepper { display: inline-flex; align-items: center; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background: #fff; }
+      .qty-stepper .qty-btn { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: #f5f5f7; color: #333; font-size: 18px; cursor: pointer; transition: background .15s ease; }
+      .qty-stepper .qty-btn:hover { background: #ececf1; }
+      .qty-stepper .quantity-input { width: 48px; height: 32px; border: 0; outline: 0; text-align: center; font-weight: 600; color: #333; background: #fff; -moz-appearance: textfield; }
+      .qty-stepper .quantity-input::-webkit-outer-spin-button,
+      .qty-stepper .quantity-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      @media (max-width: 560px) { .qty-stepper .qty-btn { width: 30px; height: 30px; } .qty-stepper .quantity-input { width: 42px; height: 30px; } }
+
+      /* Preço: somente números em negrito */
+      .price { display: flex; align-items: baseline; gap: 4px; }
+      .price .currency { font-weight: 400; color: #444; }
+      .price .amount { font-weight: 700; color: #000; }
+      .price-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+      .btn-full { display: block; width: 100%; box-sizing: border-box; }
+      @media (max-width: 560px) {
+        .price-row { flex-wrap: wrap; gap: 8px; }
+        .price { margin-right: auto; }
+        .cart-controls .btn-whatsapp { width: 100%; }
+      }
+
+      /* Estrelas de avaliação */
+      .rating { display:flex; align-items:center; gap:8px; margin: 2px 0 8px; }
+      .stars { position: relative; display: inline-block; line-height: 1; font-size: 16px; }
+      .stars-bg, .stars-fill { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif; letter-spacing: 2px; }
+      .stars-bg { color: #d7dbe0; }
+      .stars-fill { color: #f5a623; position:absolute; top:0; left:0; white-space: nowrap; overflow:hidden; }
+      .rating-num { font-size: 13px; color:#6b7280; font-weight: 600; }
+
+      /* Ícone de favoritos (coração em círculo cinza) */
+      .favorite-icon { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; background: #f3f4f6; display: inline-flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px #e5e7eb; cursor: pointer; }
+      .favorite-icon svg { display: block; }
+      .favorite-icon:hover { background: #eceff3; }
+      .favorite-icon.active svg path { stroke: #e53935; fill: #e53935; }
+    </style>
+    <!-- Stepper behavior identical to index.php -->
+    <script>
+      (function(){
+        function clampToInt(val){
+          var n = parseInt(val, 10);
+          if (isNaN(n) || n < 1) n = 1;
+          return n;
+        }
+        document.addEventListener('click', function(e){
+          var btn = e.target.closest('.qty-btn');
+          if (!btn) return;
+          var stepper = btn.closest('.qty-stepper');
+          if (!stepper) return;
+          var input = stepper.querySelector('.quantity-input');
+          var current = clampToInt(input && input.value ? input.value : '1');
+          if (btn.classList.contains('plus')) current += 1; else current = Math.max(1, current - 1);
+          if (input) { input.value = String(current); input.dispatchEvent(new Event('change', { bubbles: true })); }
+        });
+        document.addEventListener('input', function(e){
+          if (!e.target.classList.contains('quantity-input')) return;
+          e.target.value = String(clampToInt(e.target.value));
+        });
+      })();
     </script>
 </body>
 </html>
