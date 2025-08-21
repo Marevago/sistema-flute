@@ -1,8 +1,7 @@
 # Dependências do Composer
 /vendor/
 
-# Arquivos de upload
-/uploads/
+# Arquivos de upload (agora versionados)
 
 # Arquivo de sistema do macOS
 .DS_Store

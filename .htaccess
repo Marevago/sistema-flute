@@ -1,27 +1,15 @@
-# Enable rewrites
-RewriteEngine On
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Não força HTTPS em localhost (MAMP)
+  RewriteCond %{HTTP_HOST} !^localhost(:[0-9]+)?$ [NC]
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
 
-# Force HTTPS
-RewriteCond %{HTTPS} !=on
-RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,NE]
-
-# Disable directory listing
+# Evita listagem de diretórios
 Options -Indexes
 
-# Basic security headers (may require Apache 2.4+)
-<IfModule mod_headers.c>
-  Header always set X-Content-Type-Options "nosniff"
-  Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
-</IfModule>
-
-# Cache static assets (tune as needed)
-<IfModule mod_expires.c>
-  ExpiresActive On
-  ExpiresByType image/jpg  "access plus 30 days"
-  ExpiresByType image/jpeg "access plus 30 days"
-  ExpiresByType image/png  "access plus 30 days"
-  ExpiresByType image/gif  "access plus 30 days"
-  ExpiresByType text/css   "access plus 7 days"
-  ExpiresByType application/javascript "access plus 7 days"
-</IfModule>
+# Observação:
+# Headers e Expires foram removidos para evitar erro 500 em ambientes
+# onde os módulos não estão habilitados (comuns no MAMP). Em produção,
+# podemos reativar com segurança via <IfModule>.
