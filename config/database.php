@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = "localhost:8889"; // Porta padrão do MySQL no MAMP
-    private $db_name = "sistema_login";
-    private $username = "root";
-    private $password = "root"; // Senha padrão do MAMP
+    private $host = "localhost"; // GoDaddy geralmente usa localhost
+    private $db_name = "creates_sistema_login";
+    private $username = "user_mda";
+    private $password = "jeqhiw-mojjos-7boRqe";
     public $conn;
 
     public function getConnection() {
@@ -11,7 +11,7 @@ class Database {
 
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name . ";charset=utf8mb4",
                 $this->username,
                 $this->password
             );
