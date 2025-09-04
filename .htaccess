@@ -9,6 +9,9 @@
 # Evita listagem de diretórios
 Options -Indexes
 
+# Define arquivos padrão (evita 403 se o servidor não listar diretórios)
+DirectoryIndex index.php index.html index.htm
+
 # Observação:
 # Headers e Expires foram removidos para evitar erro 500 em ambientes
 # onde os módulos não estão habilitados (comuns no MAMP). Em produção,

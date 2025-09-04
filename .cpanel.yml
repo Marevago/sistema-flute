@@ -3,3 +3,6 @@ deployment:
     - export DEPLOYPATH="/home/y0p4bzkh1rat/public_html"
     - /bin/mkdir -p "$DEPLOYPATH"
     - /bin/rsync -az --delete --exclude ".git/" --exclude ".cpanel/" --exclude ".cpanel.yml" ./ "$DEPLOYPATH"/
+    # Normalize permissions: dirs 755, files 644 (prevents 403 due to unreadable files/dirs)
+    - /bin/find "$DEPLOYPATH" -type d -exec /bin/chmod 755 {} \;
+    - /bin/find "$DEPLOYPATH" -type f -exec /bin/chmod 644 {} \;
