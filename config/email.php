@@ -32,12 +32,8 @@ public function __construct() {
         $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $this->mailer->Port = 587;
         $this->mailer->CharSet = 'UTF-8';
-        // Debug direcionado ao error_log do servidor (ajuda a diagnosticar falhas de envio)
-        // Em produção, mantenha DEBUG baixo (0) após resolver o problema.
-        $this->mailer->SMTPDebug = 2; // níveis: 0=off, 1=client, 2=client+server
-        $this->mailer->Debugoutput = function ($str, $level) {
-            error_log('[PHPMailer][' . $level . '] ' . $str);
-        };
+        // Mantenha o debug desativado para evitar lentidão no checkout.
+        $this->mailer->SMTPDebug = 0; // 0 em produção
         // Timeout um pouco maior para evitar timeout em hosts compartilhados
         $this->mailer->Timeout = 20; // segundos
         // Opções SSL para hosts que usam certificados intermediários ou self-signed

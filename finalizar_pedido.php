@@ -2,6 +2,7 @@
 session_start();
 require_once 'config/database.php';
 require_once 'config/email.php';
+require_once 'config/worker.php';
 
 header('Content-Type: application/json');
 
@@ -100,48 +101,28 @@ try {
         @flush();
     }
 
-    // Após responder, tenta enviar o email em background (não impacta o cliente)
+    // Após responder, dispara um worker assíncrono para envio do e-mail (não bloqueia o cliente)
     try {
-        $emailService = new EmailService();
-        // Monta o corpo do email com os detalhes do pedido
-        $corpo_email = "
-            <h2>Novo Pedido Recebido - #{$pedido_id}</h2>
-            
-            <h3>Dados do Cliente:</h3>
-            <p>Nome: {$usuario['nome']}</p>
-            <p>Email: {$usuario['email']}</p>
-            <p>CPF: {$usuario['cpf']}</p>
-            <p>Telefone: {$usuario['telefone']}</p>
-            
-            <h3>Itens do Pedido:</h3>
-            <table border='1' style='border-collapse: collapse; width: 100%;'>
-                <tr>
-                    <th>Produto</th>
-                    <th>Quantidade</th>
-                    <th>Preço Unit.</th>
-                    <th>Subtotal</th>
-                </tr>
-        ";
-        foreach ($itens as $item) {
-            $corpo_email .= "
-                <tr>
-                    <td>{$item['produto_nome']}</td>
-                    <td>{$item['quantidade']}</td>
-                    <td>R$ " . number_format($item['preco'], 2, ',', '.') . "</td>
-                    <td>R$ " . number_format($item['subtotal'], 2, ',', '.') . "</td>
-                </tr>
-            ";
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $base = rtrim(str_replace('finalizar_pedido.php', '', $_SERVER['SCRIPT_NAME'] ?? '/'), '/');
+        $url = $scheme . '://' . $host . $base . '/email_pedido_worker.php?pedido_id=' . urlencode((string)$pedido_id) . '&token=' . urlencode(FLUTE_WORKER_TOKEN);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+        curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
+        // Opcional: em alguns hosts, desabilitar a verificação SSL localmente
+        if ($scheme === 'https') {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         }
-        $corpo_email .= "
-            </table>
-            <h3>Valor Total: R$ " . number_format($valor_total, 2, ',', '.') . "</h3>
-        ";
-        // Evita que o processo fique muito tempo preso aqui
-        @set_time_limit(15);
-        $emailService->enviarPedidoAdmin($corpo_email);
-    } catch (Exception $e) {
-        // Log silencioso no error_log sem impactar o usuário
-        error_log('[EmailPedido] Falha ao enviar email do pedido #' . $pedido_id . ': ' . $e->getMessage());
+        curl_exec($ch);
+        curl_close($ch);
+    } catch (Throwable $e) {
+        error_log('[EmailPedido] Falha ao disparar worker do pedido #' . $pedido_id . ': ' . $e->getMessage());
     }
     
 } catch (Exception $e) {
