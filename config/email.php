@@ -32,9 +32,22 @@ public function __construct() {
         $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $this->mailer->Port = 587;
         $this->mailer->CharSet = 'UTF-8';
-        // Evita logs de debug em produção e limita o tempo de espera do SMTP
-        $this->mailer->SMTPDebug = 0;
-        $this->mailer->Timeout = 10; // segundos
+        // Debug direcionado ao error_log do servidor (ajuda a diagnosticar falhas de envio)
+        // Em produção, mantenha DEBUG baixo (0) após resolver o problema.
+        $this->mailer->SMTPDebug = 2; // níveis: 0=off, 1=client, 2=client+server
+        $this->mailer->Debugoutput = function ($str, $level) {
+            error_log('[PHPMailer][' . $level . '] ' . $str);
+        };
+        // Timeout um pouco maior para evitar timeout em hosts compartilhados
+        $this->mailer->Timeout = 20; // segundos
+        // Opções SSL para hosts que usam certificados intermediários ou self-signed
+        $this->mailer->SMTPOptions = [
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+            ],
+        ];
         
         $this->mailer->setFrom('paulosschroeder@gmail.com', 'Flute Incensos');
         
@@ -102,7 +115,10 @@ public function __construct() {
             ";
             
             // Enviamos o email
-            return $this->mailer->send();
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Boas-Vindas): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
             
         } catch (Exception $e) {
             throw new Exception("Erro ao enviar email: " . $e->getMessage());
@@ -117,7 +133,10 @@ public function __construct() {
             $this->mailer->Subject = 'Novo Pedido Recebido';
             $this->mailer->Body = $corpo_email;
             
-            return $this->mailer->send();
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Pedido Admin): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
         } catch (Exception $e) {
             throw new Exception("Erro ao enviar email: " . $e->getMessage());
         }
