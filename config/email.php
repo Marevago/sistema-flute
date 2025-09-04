@@ -32,6 +32,9 @@ public function __construct() {
         $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $this->mailer->Port = 587;
         $this->mailer->CharSet = 'UTF-8';
+        // Evita logs de debug em produção e limita o tempo de espera do SMTP
+        $this->mailer->SMTPDebug = 0;
+        $this->mailer->Timeout = 10; // segundos
         
         $this->mailer->setFrom('paulosschroeder@gmail.com', 'Flute Incensos');
         

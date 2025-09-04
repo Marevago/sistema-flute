@@ -78,6 +78,7 @@ if (usuarioEstaLogado()) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=1.2">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <?php include __DIR__ . '/config/analytics.php'; ?>
 
     <style>
         /* Pequena animação no ícone do carrinho quando adicionar */
