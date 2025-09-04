@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/email.php';
 
 try {
+    error_log('[Email Worker] start pedido_id=' . ($_GET['pedido_id'] ?? ''));    
     $token = isset($_GET['token']) ? $_GET['token'] : '';
     $pedido_id = isset($_GET['pedido_id']) ? (int) $_GET['pedido_id'] : 0;
     if ($token !== FLUTE_WORKER_TOKEN) {
@@ -79,7 +80,7 @@ try {
 
     $email = new EmailService();
     $email->enviarPedidoAdmin($corpo_email);
-
+    error_log('[Email Worker] enviado com sucesso pedido_id=' . $pedido_id);
     echo json_encode(['sucesso' => true]);
 } catch (Throwable $e) {
     error_log('[Email Worker] erro: ' . $e->getMessage());

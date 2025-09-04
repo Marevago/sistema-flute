@@ -119,8 +119,12 @@ try {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         }
-        curl_exec($ch);
+        $resp = curl_exec($ch);
+        $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $cerr = curl_error($ch);
         curl_close($ch);
+        // Logar informações do disparo do worker para diagnóstico
+        error_log('[EmailPedido] Worker URL: ' . $url . ' | HTTP: ' . $http . ' | cURL error: ' . ($cerr ?: 'none'));
     } catch (Throwable $e) {
         error_log('[EmailPedido] Falha ao disparar worker do pedido #' . $pedido_id . ': ' . $e->getMessage());
     }
