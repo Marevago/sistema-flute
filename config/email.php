@@ -24,28 +24,13 @@ public function __construct() {
     $this->mailer = new PHPMailer(true);
     
     try {
-        $this->mailer->isSMTP();
-        $this->mailer->Host = 'smtp.gmail.com';
-        $this->mailer->SMTPAuth = true;
-        $this->mailer->Username = 'paulosschroeder@gmail.com'; // Verifique se está correto
-        $this->mailer->Password = 'xoha hxyq ffnp znik'; // Verifique se está correta
-        $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mailer->Port = 587;
+        // Usar transporte nativo do host (sendmail/mail)
+        $this->mailer->isMail();
         $this->mailer->CharSet = 'UTF-8';
-        // Mantenha o debug desativado para evitar lentidão no checkout.
-        $this->mailer->SMTPDebug = 0; // 0 em produção
-        // Timeout um pouco maior para evitar timeout em hosts compartilhados
-        $this->mailer->Timeout = 20; // segundos
-        // Opções SSL para hosts que usam certificados intermediários ou self-signed
-        $this->mailer->SMTPOptions = [
-            'ssl' => [
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-                'allow_self_signed' => true,
-            ],
-        ];
-        
-        $this->mailer->setFrom('paulosschroeder@gmail.com', 'Flute Incensos');
+        $this->mailer->SMTPDebug = 0; // garantir sem verbosidade
+        // Define From e Return-Path (Sender) para melhor entrega
+        $this->mailer->setFrom('no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'), 'Flute Incensos');
+        $this->mailer->Sender = 'no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
         
     } catch (Exception $e) {
         throw new Exception("Erro na configuração do email: " . $e->getMessage());
