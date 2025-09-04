@@ -28,9 +28,10 @@ public function __construct() {
         $this->mailer->isMail();
         $this->mailer->CharSet = 'UTF-8';
         $this->mailer->SMTPDebug = 0; // garantir sem verbosidade
-        // Define From e Return-Path (Sender) para melhor entrega
-        $this->mailer->setFrom('no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'), 'Flute Incensos');
-        $this->mailer->Sender = 'no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        // Define From (envelope) e Return-Path (Sender) usando caixas do domínio
+        $this->mailer->setFrom('no-reply@incensosflute.com.br', 'Flute Incensos');
+        $this->mailer->Sender = 'no-reply@incensosflute.com.br';
+        $this->mailer->addReplyTo('contato@incensosflute.com.br', 'Flute Incensos');
         
     } catch (Exception $e) {
         throw new Exception("Erro na configuração do email: " . $e->getMessage());

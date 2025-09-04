@@ -103,10 +103,8 @@ try {
 
     // Após responder, dispara um worker assíncrono para envio do e-mail (não bloqueia o cliente)
     try {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $base = rtrim(str_replace('finalizar_pedido.php', '', $_SERVER['SCRIPT_NAME'] ?? '/'), '/');
-        $url = $scheme . '://' . $host . $base . '/email_pedido_worker.php?pedido_id=' . urlencode((string)$pedido_id) . '&token=' . urlencode(FLUTE_WORKER_TOKEN);
+        // URL do worker em produção (hardcoded para evitar variações de path)
+        $url = 'https://incensosflute.com.br/email_pedido_worker.php?pedido_id=' . urlencode((string)$pedido_id) . '&token=' . urlencode(FLUTE_WORKER_TOKEN);
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -114,11 +112,9 @@ try {
         curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
         curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
-        // Opcional: em alguns hosts, desabilitar a verificação SSL localmente
-        if ($scheme === 'https') {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        }
+        // Opcional: em alguns hosts, desabilitar a verificação SSL localmente (URL é https)
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $resp = curl_exec($ch);
         $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $cerr = curl_error($ch);
