@@ -79,8 +79,43 @@ try {
     ";
 
     $email = new EmailService();
+    // 1) Envia para o ADMIN
     $email->enviarPedidoAdmin($corpo_email);
-    error_log('[Email Worker] enviado com sucesso pedido_id=' . $pedido_id);
+
+    // 2) Envia confirmação para o CLIENTE
+    $corpo_cliente = "
+        <h2>Obrigado pelo seu pedido, " . htmlspecialchars($pedido['nome']) . "!</h2>
+        <p>Recebemos o seu pedido #{$pedido_id}. Abaixo estão os detalhes:</p>
+        <h3>Itens:</h3>
+        <table border='1' style='border-collapse: collapse; width: 100%;'>
+            <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço Unit.</th>
+                <th>Subtotal</th>
+            </tr>
+    ";
+    foreach ($itens as $item) {
+        $q = (int) $item['quantidade'];
+        $pu = (float) $item['preco_unitario'];
+        $subtotal = $q * $pu;
+        $corpo_cliente .= "
+            <tr>
+                <td>" . htmlspecialchars($item['produto_nome']) . "</td>
+                <td>{$q}</td>
+                <td>R$ " . number_format($pu, 2, ',', '.') . "</td>
+                <td>R$ " . number_format($subtotal, 2, ',', '.') . "</td>
+            </tr>
+        ";
+    }
+    $corpo_cliente .= "
+        </table>
+        <h3>Total: R$ " . number_format((float)$pedido['valor_total'], 2, ',', '.') . "</h3>
+        <p>Qualquer dúvida, responda este e-mail. Obrigado por comprar com a Flute Incensos!</p>
+    ";
+    $email->enviarPedidoCliente($pedido['email'], $pedido['nome'], $pedido_id, $corpo_cliente);
+
+    error_log('[Email Worker] enviado com sucesso (admin e cliente) pedido_id=' . $pedido_id);
     echo json_encode(['sucesso' => true]);
 } catch (Throwable $e) {
     error_log('[Email Worker] erro: ' . $e->getMessage());

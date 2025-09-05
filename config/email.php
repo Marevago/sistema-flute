@@ -129,5 +129,24 @@ public function __construct() {
         }
     }
     
+    // Envia confirmação do pedido para o cliente
+    public function enviarPedidoCliente($emailCliente, $nomeCliente, $pedido_id, $corpo_email_cliente) {
+        try {
+            $this->mailer->clearAllRecipients();
+            $this->mailer->addAddress($emailCliente, $nomeCliente);
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = 'Seu pedido #' . $pedido_id . ' foi recebido';
+            $this->mailer->Body = $corpo_email_cliente;
+            // Cópia oculta para caixa de contato
+            $this->mailer->addBCC('contato@incensosflute.com.br');
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Pedido Cliente): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Erro ao enviar email: " . $e->getMessage());
+        }
+    }
+    
 }
 ?>
