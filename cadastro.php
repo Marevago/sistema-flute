@@ -36,6 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $emailService = new EmailService();
                 $emailService->enviarBoasVindas($email, $nome);
+                // Notifica o admin sobre o novo cadastro
+                $emailService->enviarCadastroAdmin($nome, $email);
                 
                 // Mensagem de sucesso bonita e profissional
                 echo "
