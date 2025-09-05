@@ -118,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=1.2">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <?php include __DIR__ . '/config/analytics.php'; ?>
 
     <style>
         /* Toast e animação do carrinho para consistência com produtos.php */
@@ -644,6 +645,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } catch (error) {
                 console.error('Erro ao finalizar pedido:', error);
+                alert('Erro ao finalizar pedido: problema de rede ou servidor indisponível. Tente novamente em instantes.');
             }
 
             

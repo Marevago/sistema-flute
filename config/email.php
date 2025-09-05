@@ -24,16 +24,14 @@ public function __construct() {
     $this->mailer = new PHPMailer(true);
     
     try {
-        $this->mailer->isSMTP();
-        $this->mailer->Host = 'smtp.gmail.com';
-        $this->mailer->SMTPAuth = true;
-        $this->mailer->Username = 'paulosschroeder@gmail.com'; // Verifique se está correto
-        $this->mailer->Password = 'xoha hxyq ffnp znik'; // Verifique se está correta
-        $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mailer->Port = 587;
+        // Usar transporte nativo do host (sendmail/mail)
+        $this->mailer->isMail();
         $this->mailer->CharSet = 'UTF-8';
-        
-        $this->mailer->setFrom('paulosschroeder@gmail.com', 'Flute Incensos');
+        $this->mailer->SMTPDebug = 0; // garantir sem verbosidade
+        // Define remetente padrão como contato@incensosflute.com.br
+        $this->mailer->setFrom('contato@incensosflute.com.br', 'Flute Incensos');
+        $this->mailer->Sender = 'contato@incensosflute.com.br';
+        $this->mailer->addReplyTo('contato@incensosflute.com.br', 'Flute Incensos');
         
     } catch (Exception $e) {
         throw new Exception("Erro na configuração do email: " . $e->getMessage());
@@ -44,7 +42,7 @@ public function __construct() {
     public function enviarBoasVindas($emailDestinatario, $nomeDestinatario) {
         try {
             // Limpamos destinatários anteriores (por segurança)
-            $this->mailer->clearAddresses();
+            $this->mailer->clearAllRecipients();
             
             // Configuramos o novo destinatário
             $this->mailer->addAddress($emailDestinatario, $nomeDestinatario);
@@ -98,8 +96,13 @@ public function __construct() {
                 Equipe Sistema Flute
             ";
             
+            // Sempre enviar cópia oculta para contato@incensosflute.com.br
+            $this->mailer->addBCC('contato@incensosflute.com.br');
             // Enviamos o email
-            return $this->mailer->send();
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Boas-Vindas): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
             
         } catch (Exception $e) {
             throw new Exception("Erro ao enviar email: " . $e->getMessage());
@@ -107,14 +110,58 @@ public function __construct() {
     }
     public function enviarPedidoAdmin($corpo_email) {
         try {
-            $this->mailer->clearAddresses();
+            $this->mailer->clearAllRecipients();
             $this->mailer->addAddress('paulosschroeder@gmail.com', 'Admin Loja'); // Seu email aqui
             
             $this->mailer->isHTML(true);
             $this->mailer->Subject = 'Novo Pedido Recebido';
             $this->mailer->Body = $corpo_email;
             
-            return $this->mailer->send();
+            // Sempre enviar cópia oculta para contato@incensosflute.com.br
+            $this->mailer->addBCC('contato@incensosflute.com.br');
+            
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Pedido Admin): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Erro ao enviar email: " . $e->getMessage());
+        }
+    }
+    
+    // Envia confirmação do pedido para o cliente
+    public function enviarPedidoCliente($emailCliente, $nomeCliente, $pedido_id, $corpo_email_cliente) {
+        try {
+            $this->mailer->clearAllRecipients();
+            $this->mailer->addAddress($emailCliente, $nomeCliente);
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = 'Seu pedido #' . $pedido_id . ' foi recebido';
+            $this->mailer->Body = $corpo_email_cliente;
+            // Cópia oculta para caixa de contato
+            $this->mailer->addBCC('contato@incensosflute.com.br');
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Pedido Cliente): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Erro ao enviar email: " . $e->getMessage());
+        }
+    }
+    
+    // Notifica o ADMIN sobre novo cadastro
+    public function enviarCadastroAdmin($nome, $email) {
+        try {
+            $this->mailer->clearAllRecipients();
+            $this->mailer->addAddress('paulosschroeder@gmail.com', 'Admin Loja');
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = 'Novo cadastro realizado';
+            $this->mailer->Body = "<h3>Novo cadastro</h3><p><strong>Nome:</strong> " . htmlspecialchars($nome) . "</p><p><strong>Email:</strong> " . htmlspecialchars($email) . "</p>";
+            // Cópia oculta para caixa de contato
+            $this->mailer->addBCC('contato@incensosflute.com.br');
+            if (!$this->mailer->send()) {
+                throw new Exception('Erro ao enviar email (Cadastro Admin): ' . $this->mailer->ErrorInfo);
+            }
+            return true;
         } catch (Exception $e) {
             throw new Exception("Erro ao enviar email: " . $e->getMessage());
         }
