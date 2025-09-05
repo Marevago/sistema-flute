@@ -28,9 +28,9 @@ public function __construct() {
         $this->mailer->isMail();
         $this->mailer->CharSet = 'UTF-8';
         $this->mailer->SMTPDebug = 0; // garantir sem verbosidade
-        // Define From (envelope) e Return-Path (Sender) usando caixas do domínio
-        $this->mailer->setFrom('no-reply@incensosflute.com.br', 'Flute Incensos');
-        $this->mailer->Sender = 'no-reply@incensosflute.com.br';
+        // Define remetente padrão como contato@incensosflute.com.br
+        $this->mailer->setFrom('contato@incensosflute.com.br', 'Flute Incensos');
+        $this->mailer->Sender = 'contato@incensosflute.com.br';
         $this->mailer->addReplyTo('contato@incensosflute.com.br', 'Flute Incensos');
         
     } catch (Exception $e) {
@@ -42,7 +42,7 @@ public function __construct() {
     public function enviarBoasVindas($emailDestinatario, $nomeDestinatario) {
         try {
             // Limpamos destinatários anteriores (por segurança)
-            $this->mailer->clearAddresses();
+            $this->mailer->clearAllRecipients();
             
             // Configuramos o novo destinatário
             $this->mailer->addAddress($emailDestinatario, $nomeDestinatario);
@@ -96,6 +96,8 @@ public function __construct() {
                 Equipe Sistema Flute
             ";
             
+            // Sempre enviar cópia oculta para contato@incensosflute.com.br
+            $this->mailer->addBCC('contato@incensosflute.com.br');
             // Enviamos o email
             if (!$this->mailer->send()) {
                 throw new Exception('Erro ao enviar email (Boas-Vindas): ' . $this->mailer->ErrorInfo);
@@ -108,12 +110,15 @@ public function __construct() {
     }
     public function enviarPedidoAdmin($corpo_email) {
         try {
-            $this->mailer->clearAddresses();
+            $this->mailer->clearAllRecipients();
             $this->mailer->addAddress('paulosschroeder@gmail.com', 'Admin Loja'); // Seu email aqui
             
             $this->mailer->isHTML(true);
             $this->mailer->Subject = 'Novo Pedido Recebido';
             $this->mailer->Body = $corpo_email;
+            
+            // Sempre enviar cópia oculta para contato@incensosflute.com.br
+            $this->mailer->addBCC('contato@incensosflute.com.br');
             
             if (!$this->mailer->send()) {
                 throw new Exception('Erro ao enviar email (Pedido Admin): ' . $this->mailer->ErrorInfo);
