@@ -148,24 +148,5 @@ public function __construct() {
         }
     }
     
-    // Notifica o ADMIN sobre novo cadastro
-    public function enviarCadastroAdmin($nome, $email) {
-        try {
-            $this->mailer->clearAllRecipients();
-            $this->mailer->addAddress('paulosschroeder@gmail.com', 'Admin Loja');
-            $this->mailer->isHTML(true);
-            $this->mailer->Subject = 'Novo cadastro realizado';
-            $this->mailer->Body = "<h3>Novo cadastro</h3><p><strong>Nome:</strong> " . htmlspecialchars($nome) . "</p><p><strong>Email:</strong> " . htmlspecialchars($email) . "</p>";
-            // Cópia oculta para caixa de contato
-            $this->mailer->addBCC('contato@incensosflute.com.br');
-            if (!$this->mailer->send()) {
-                throw new Exception('Erro ao enviar email (Cadastro Admin): ' . $this->mailer->ErrorInfo);
-            }
-            return true;
-        } catch (Exception $e) {
-            throw new Exception("Erro ao enviar email: " . $e->getMessage());
-        }
-    }
-    
 }
 ?>
