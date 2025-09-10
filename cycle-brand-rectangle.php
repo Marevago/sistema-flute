@@ -51,13 +51,7 @@ if (usuarioEstaLogado()) {
         .cart-message.success{ background:#2e7d32 }
         .cart-message.error{ background:#c62828 }
 
-        /* Rating stars styles (aligned with other pages) */
-        .rating { display:flex; align-items:center; gap:8px; margin: 2px 0 8px; }
-        .stars { position: relative; display: inline-block; width: 80px; height: 18px; line-height: 18px; }
-        .stars-bg, .stars-fill { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif; letter-spacing: 2px; }
-        .stars-bg { color: #e5e7eb; }
-        .stars-fill { color: #f5a623; position:absolute; top:0; left:0; white-space: nowrap; overflow:hidden; }
-        .rating-num { font-size: 13px; color:#6b7280; font-weight: 600; }
+        
 
         /* Product cards layout aligned with index */
         .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -406,17 +400,7 @@ if (usuarioEstaLogado()) {
                                     <?php echo htmlspecialchars($nomePadronizado); ?>
                                     <?php if ($linkProduto): ?></a><?php endif; ?>
                                 </h2>
-                                <?php 
-                                  $rating = 4.5 + (($produto['id'] % 5) * 0.1);
-                                  $ratingPct = min(100, max(0, ($rating / 5) * 100));
-                                ?>
-                                <div class="rating" aria-label="Avaliação: <?php echo number_format($rating,1,',','.'); ?> de 5">
-                                    <div class="stars" role="img" aria-hidden="true">
-                                        <div class="stars-bg">★★★★★</div>
-                                        <div class="stars-fill" style="width: <?php echo number_format($ratingPct,0,'.',''); ?>%">★★★★★</div>
-                                    </div>
-                                    <span class="rating-num"><?php echo number_format($rating,1,',','.'); ?></span>
-                                </div>
+                                
                                 
                                 <?php if (usuarioEstaLogado()): ?>
                                     <div class="price-area">

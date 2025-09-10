@@ -67,7 +67,6 @@ if (usuarioEstaLogado()) {
         .product-card .product-name { width: 100%; margin-bottom: 6px; }
         .product-card .product-name a { display: inline-block; }
         .price-area { width: 100%; }
-        .rating { width: 100%; }
         .cart-controls { width: 100%; }
         .cart-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .cart-controls { flex-direction: column; align-items: flex-start; }
@@ -93,13 +92,7 @@ if (usuarioEstaLogado()) {
           .cart-controls .btn-whatsapp { width: 100%; }
         }
 
-        /* Estrelas de avaliação */
-        .rating { display:flex; align-items:center; gap:8px; margin: 2px 0 8px; }
-        .stars { position: relative; display: inline-block; line-height: 1; font-size: 16px; }
-        .stars-bg, .stars-fill { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif; letter-spacing: 2px; }
-        .stars-bg { color: #d7dbe0; }
-        .stars-fill { color: #f5a623; position:absolute; top:0; left:0; white-space: nowrap; overflow:hidden; }
-        .rating-num { font-size: 13px; color:#6b7280; font-weight: 600; }
+        
 
         /* Ícone de favoritos (coração em círculo cinza) */
         .product-card { position: relative; }
@@ -432,18 +425,7 @@ if (usuarioEstaLogado()) {
                                     <?php echo htmlspecialchars($nomePadronizado); ?>
                                     <?php if ($linkProduto): ?></a><?php endif; ?>
                                 </h2>
-                                <?php 
-                                  // Avaliação simulada estável por produto (igual index.php)
-                                  $rating = 4.5 + (($produto['id'] % 5) * 0.1);
-                                  $ratingPct = min(100, max(0, ($rating / 5) * 100));
-                                ?>
-                                <div class="rating" aria-label="Avaliação: <?php echo number_format($rating,1,',','.'); ?> de 5">
-                                    <div class="stars" role="img" aria-hidden="true">
-                                        <div class="stars-bg">★★★★★</div>
-                                        <div class="stars-fill" style="width: <?php echo number_format($ratingPct,0,'.',''); ?>%">★★★★★</div>
-                                    </div>
-                                    <span class="rating-num"><?php echo number_format($rating,1,',','.'); ?></span>
-                                </div>
+                                
                                 <?php if (usuarioEstaLogado()): ?>
                                     <div class="price-area">
                                         <div class="price-row">
