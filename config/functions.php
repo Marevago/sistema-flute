@@ -72,8 +72,9 @@ function getImagePath($categoria, $variacao) {
             $categoriaFolder = 'clove-brand';
             $ext = 'png';
             $prefix = 'clove-';
-            // clove usa nome sem espaços/hifens e somente alfanumérico
-            $nomeArquivo = preg_replace('/[^a-z0-9]/', '', str_replace(' ', '', $nomeBase));
+            // Ajuste: Clove passa a usar hifens entre palavras (ex.: dama-da-noite)
+            // Normaliza para minúsculo sem acentos (já feito em $nomeBase) e troca espaços por hifens
+            $nomeArquivo = preg_replace('/[^a-z0-9-]/', '', str_replace(' ', '-', $nomeBase));
             break;
         default:
             // fallback genérico: usa hifens
