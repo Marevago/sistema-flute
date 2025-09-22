@@ -275,6 +275,8 @@ function usuarioEstaLogado() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flute Incensos - Atacado de Incensos e Acessórios</title>
+    <link rel="icon" type="image/png" href="uploads/flute_logo.png">
+    <link rel="apple-touch-icon" href="uploads/flute_logo.png">
     <?php // Google Analytics
         $gaInclude = __DIR__ . '/config/analytics.php';
         if (file_exists($gaInclude)) { include $gaInclude; }
