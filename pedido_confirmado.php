@@ -17,6 +17,10 @@ if ($pedido_id <= 0 || $valor_total <= 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <title>Pedido Confirmado</title>
+    <?php // Google Analytics
+        $gaInclude = __DIR__ . '/config/analytics.php';
+        if (file_exists($gaInclude)) { include $gaInclude; }
+    ?>
     <style>
         /* Use os mesmos estilos base das outras páginas */
         body {
