@@ -1,3 +1,15 @@
+<?php
+// Recebe os dados do pedido via URL
+$pedido_id = isset($_GET['pedido_id']) ? (int)$_GET['pedido_id'] : 0;
+$valor_total = isset($_GET['valor_total']) ? (float)$_GET['valor_total'] : 0;
+
+// Validação básica dos dados
+if ($pedido_id <= 0 || $valor_total <= 0) {
+    // Redireciona para a página inicial se os dados estão inválidos
+    header('Location: index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -63,10 +75,22 @@
         <h1 class="success-message">Pedido Confirmado!</h1>
         <p>Obrigado por sua compra. Seu pedido foi recebido com sucesso!</p>
         <div class="details">
+            <p><strong>Número do Pedido:</strong> #<?php echo $pedido_id; ?></p>
+            <p><strong>Valor Total:</strong> R$ <?php echo number_format($valor_total, 2, ',', '.'); ?></p>
             <p>Entraremos em contato em breve para combinar os detalhes do pagamento e entrega.</p>
             <p>Fique atento ao seu email e telefone.</p>
         </div>
         <a href="produtos.php" class="btn">Voltar para a Loja</a>
     </div>
+
+    <!-- Google Ads Conversion Tracking -->
+    <script>
+      gtag('event', 'conversion', {
+          'send_to': 'AW-17592109818/PbRLCMCi9Z8bEPqVycRB',
+          'value': <?php echo $valor_total; ?>,
+          'currency': 'BRL',
+          'transaction_id': '<?php echo $pedido_id; ?>'
+      });
+    </script>
 </body>
 </html>

@@ -639,7 +639,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (data.sucesso) {
                     alert('Pedido finalizado com sucesso!');
                     try { localStorage.setItem('cart_updated', Date.now().toString()); } catch (e) {}
-                    window.location.href = 'pedido_confirmado.php';
+                    // Pass order data to confirmation page
+                    window.location.href = `pedido_confirmado.php?pedido_id=${data.pedido_id}&valor_total=${encodeURIComponent(valorTotal)}`;
                 } else {
                     alert(data.erro || 'Erro ao finalizar pedido');
                 }
