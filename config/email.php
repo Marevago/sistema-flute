@@ -49,34 +49,34 @@ public function __construct() {
             
             // Configuramos o email
             $this->mailer->isHTML(true);  // Vamos usar HTML para deixar o email bonito
-            $this->mailer->Subject = 'Bem-vindo ao Sistema Flute!';
+            $this->mailer->Subject = 'Bem-vindo à Flute Incensos!';
             
             // O corpo do email em HTML (versão bonita)
             $this->mailer->Body = "
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
                     <h2 style='color: #333;'>Olá, {$nomeDestinatario}!</h2>
                     
-                    <p>Que bom ter você conosco! Seu cadastro foi realizado com sucesso.</p>
+                    <p>Que bom ter você conosco! Seu cadastro em nosso website foi realizado com sucesso.</p>
                     
-                    <p>Você já pode acessar nossa plataforma usando seu email:</p>
+                    <p>Você já pode acessar nosso website usando seu email:</p>
                     <p style='background: #f8f8f8; padding: 10px; border-radius: 5px;'>
                         {$emailDestinatario}
                     </p>
                     
                     <div style='margin: 30px 0; text-align: center;'>
-                        <a href='http://localhost/sistema_flute/login.html' 
+                        <a href='https://incensosflute.com.br/index.php' 
                            style='background-color: #4CAF50; 
                                   color: white; 
                                   padding: 12px 25px; 
                                   text-decoration: none; 
                                   border-radius: 5px;'>
-                            Acessar o Sistema
+                            Acessar o Website
                         </a>
                     </div>
                     
                     <p>Se precisar de ajuda, é só responder este email.</p>
                     
-                    <p>Abraços,<br>Equipe Sistema Flute</p>
+                    <p>Abraços,<br>Equipe Flute Incensos</p>
                 </div>
             ";
             
@@ -84,16 +84,16 @@ public function __construct() {
             $this->mailer->AltBody = "
                 Olá, {$nomeDestinatario}!
                 
-                Que bom ter você conosco! Seu cadastro foi realizado com sucesso.
+                Que bom ter você conosco! Seu cadastro em nosso website foi realizado com sucesso.
                 
-                Você já pode acessar nossa plataforma usando seu email: {$emailDestinatario}
+                Você já pode acessar nosso website usando seu email: {$emailDestinatario}
                 
-                Para acessar o sistema, visite: http://localhost/sistema_flute/login.html
+                Para acessar o website, visite: https://incensosflute.com.br/index.php
                 
                 Se precisar de ajuda, é só responder este email.
                 
                 Abraços,
-                Equipe Sistema Flute
+                Equipe Flute Incensos
             ";
             
             // Sempre enviar cópia oculta para contato@incensosflute.com.br
