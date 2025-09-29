@@ -804,3 +804,66 @@ body {
         border-top: 2px solid rgba(0,0,0,0.04);
     }
 }
+
+/* ============================= */
+/* BUSCA MOBILE */
+/* ============================= */
+
+/* Esconde a busca mobile no desktop */
+.mobile-search-area {
+    display: none;
+}
+
+/* Mostra a busca mobile apenas quando o menu está aberto */
+@media (max-width: 768px) {
+    .main-nav.open .mobile-search-area {
+        display: block;
+        padding: 20px 15px;
+        border-bottom: 1px solid #f0f0f0;
+        background: #fff;
+    }
+    
+    .mobile-search-bar {
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 25px;
+        padding: 8px 15px;
+        gap: 10px;
+    }
+    
+    .mobile-search-bar input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 16px;
+        color: #333;
+        padding: 0;
+    }
+    
+    .mobile-search-bar input::placeholder {
+        color: #6c757d;
+    }
+    
+    .mobile-search-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        transition: color 0.2s ease;
+    }
+    
+    .mobile-search-btn:hover {
+        color: #007bff;
+    }
+    
+    .mobile-search-btn svg {
+        display: block;
+    }
+}
