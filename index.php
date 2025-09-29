@@ -658,6 +658,8 @@ function usuarioEstaLogado() {
         }
         </style>
     </header>
+    
+    <!-- Deploy atualizado em <?php echo date('Y-m-d H:i:s'); ?> -->
 
     <!-- Banner (igual produtos.php) -->
     <div class="swiper-container banner-slider">
