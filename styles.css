@@ -814,26 +814,32 @@ body {
     display: none;
 }
 
-/* Mostra a busca mobile apenas quando o menu está aberto */
+/* Barra de busca mobile sempre visível */
+.mobile-search-fixed {
+    display: none;
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 @media (max-width: 768px) {
-    .main-nav.open .mobile-search-area {
+    .mobile-search-fixed {
         display: block;
-        padding: 20px 15px;
-        border-bottom: 1px solid #f0f0f0;
-        background: #fff;
+        padding: 12px 0;
     }
     
-    .mobile-search-bar {
+    .mobile-search-form {
         display: flex;
         align-items: center;
         background: #f8f9fa;
         border: 1px solid #e9ecef;
         border-radius: 25px;
-        padding: 8px 15px;
-        gap: 10px;
+        padding: 10px 20px;
+        gap: 12px;
+        margin: 0 15px;
     }
     
-    .mobile-search-bar input {
+    .mobile-search-form input {
         flex: 1;
         border: none;
         background: transparent;
@@ -843,11 +849,11 @@ body {
         padding: 0;
     }
     
-    .mobile-search-bar input::placeholder {
+    .mobile-search-form input::placeholder {
         color: #6c757d;
     }
     
-    .mobile-search-btn {
+    .mobile-search-submit {
         background: none;
         border: none;
         padding: 0;
@@ -859,11 +865,11 @@ body {
         transition: color 0.2s ease;
     }
     
-    .mobile-search-btn:hover {
+    .mobile-search-submit:hover {
         color: #007bff;
     }
     
-    .mobile-search-btn svg {
+    .mobile-search-submit svg {
         display: block;
     }
 }

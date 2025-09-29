@@ -44,16 +44,6 @@ session_start();
     </div>
     <nav class="main-nav" id="main-nav">
         <div class="container">
-            <!-- Barra de busca mobile -->
-            <div class="mobile-search-area">
-                <form class="mobile-search-bar" action="buscar.php" method="get">
-                    <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos">
-                    <button type="submit" aria-label="Buscar" class="mobile-search-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </button>
-                </form>
-            </div>
-            
             <ul class="nav-list">
                 <li><a href="index.php" class="nav-link">Início</a></li>
                 <li class="nav-item dropdown">
@@ -76,4 +66,16 @@ session_start();
         </div>
     </nav>
     <div class="backdrop" id="backdrop"></div>
+    
+    <!-- Barra de busca mobile sempre visível -->
+    <div class="mobile-search-fixed">
+        <div class="container">
+            <form class="mobile-search-form" action="buscar.php" method="get">
+                <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos">
+                <button type="submit" aria-label="Buscar" class="mobile-search-submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+            </form>
+        </div>
+    </div>
 </header>
