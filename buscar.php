@@ -113,7 +113,7 @@ function buscarProdutosInteligente($conn, $termo) {
               ($scoreCalculation) as relevancia
               FROM produtos 
               WHERE (" . implode(' OR ', $conditions) . ") 
-              AND tipo = 'produto'
+              AND (tipo = 'produto' OR tipo = 'Incensos')
               HAVING relevancia > 0
               ORDER BY relevancia DESC, nome ASC";
     
@@ -139,7 +139,7 @@ function buscarProdutosSimilares($conn, $produtos, $limite = 6) {
     $query = "SELECT * FROM produtos 
               WHERE categoria IN ($placeholders) 
               AND id NOT IN ($placeholdersIds)
-              AND tipo = 'produto'
+              AND (tipo = 'produto' OR tipo = 'Incensos')
               ORDER BY RAND() 
               LIMIT $limite";
     
