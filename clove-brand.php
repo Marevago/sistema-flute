@@ -346,6 +346,27 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
         </nav>
         <div class="backdrop" id="backdrop"></div>
+        
+        <!-- Barra de busca mobile sempre visível -->
+        <div class="mobile-search-fixed" style="display: none; background: #fff; border-bottom: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div class="container">
+                <form class="mobile-search-form" action="buscar.php" method="get" style="display: flex; align-items: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 25px; padding: 10px 20px; gap: 12px; margin: 0 15px;">
+                    <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos" style="flex: 1; border: none; background: transparent; outline: none; font-size: 16px; color: #333; padding: 0;">
+                    <button type="submit" aria-label="Buscar" class="mobile-search-submit" style="background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <style>
+        @media (max-width: 768px) {
+            .mobile-search-fixed {
+                display: block !important;
+                padding: 12px 0;
+            }
+        }
+        </style>
     </header>
 
     <!-- Slider main container -->
