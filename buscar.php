@@ -19,20 +19,122 @@ $conn = $database->getConnection();
 // Capturar termo de busca
 $termoBusca = isset($_GET['q']) ? trim($_GET['q']) : '';
 $produtos = [];
+$produtosSimilares = [];
 $totalResultados = 0;
+$sugestoesBusca = [];
+
+// Função para busca inteligente com sinônimos e palavras relacionadas
+function buscarProdutosInteligente($conn, $termo) {
+    // Mapeamento de sinônimos e palavras relacionadas
+    $sinonimos = [
+        'incenso' => ['incenso', 'incensos', 'bastão', 'bastões', 'vara', 'varas'],
+        'masala' => ['masala', 'massala', 'natural', 'artesanal'],
+        'regular' => ['regular', 'comum', 'tradicional', 'clássico'],
+        'square' => ['square', 'quadrado', 'quadrada'],
+        'tube' => ['tube', 'tubo', 'cilindro'],
+        'xamanico' => ['xamanico', 'xamânico', 'shamanico', 'shamânico', 'ritual', 'sagrado'],
+        'clove' => ['clove', 'cravo', 'tempero'],
+        'cycle' => ['cycle', 'ciclo'],
+        'brand' => ['brand', 'marca'],
+        'small' => ['small', 'pequeno', 'mini'],
+        'long' => ['long', 'longo', 'comprido'],
+        'rectangle' => ['rectangle', 'retangular', 'retângulo'],
+        'packet' => ['packet', 'pacote', 'embalagem']
+    ];
+    
+    $termosParaBuscar = [$termo];
+    
+    // Adicionar sinônimos
+    foreach ($sinonimos as $palavra => $lista) {
+        if (stripos($termo, $palavra) !== false) {
+            $termosParaBuscar = array_merge($termosParaBuscar, $lista);
+        }
+    }
+    
+    // Remover duplicatas e termo original
+    $termosParaBuscar = array_unique($termosParaBuscar);
+    
+    // Construir query dinâmica
+    $conditions = [];
+    $params = [];
+    
+    foreach ($termosParaBuscar as $index => $termoAtual) {
+        $paramName = ':termo' . $index;
+        $conditions[] = "(nome LIKE $paramName OR categoria LIKE $paramName)";
+        $params[$paramName] = '%' . $termoAtual . '%';
+    }
+    
+    $query = "SELECT *, 
+              CASE 
+                WHEN nome LIKE :termoExato THEN 3
+                WHEN categoria LIKE :termoExato THEN 2
+                ELSE 1
+              END as relevancia
+              FROM produtos 
+              WHERE (" . implode(' OR ', $conditions) . ") 
+              AND tipo = 'produto'
+              ORDER BY relevancia DESC, nome ASC";
+    
+    $params[':termoExato'] = '%' . $termo . '%';
+    
+    $stmt = $conn->prepare($query);
+    foreach ($params as $param => $value) {
+        $stmt->bindValue($param, $value);
+    }
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Função para buscar produtos similares baseados na categoria
+function buscarProdutosSimilares($conn, $produtos, $limite = 6) {
+    if (empty($produtos)) return [];
+    
+    $categorias = array_unique(array_column($produtos, 'categoria'));
+    $idsExcluir = array_column($produtos, 'id');
+    
+    $placeholders = str_repeat('?,', count($categorias) - 1) . '?';
+    $placeholdersIds = str_repeat('?,', count($idsExcluir) - 1) . '?';
+    
+    $query = "SELECT * FROM produtos 
+              WHERE categoria IN ($placeholders) 
+              AND id NOT IN ($placeholdersIds)
+              AND tipo = 'produto'
+              ORDER BY RAND() 
+              LIMIT $limite";
+    
+    $stmt = $conn->prepare($query);
+    $params = array_merge($categorias, $idsExcluir);
+    $stmt->execute($params);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Função para gerar sugestões de busca
+function gerarSugestoesBusca() {
+    return [
+        'Masala Square',
+        'Regular Square', 
+        'Incenso Xamânico',
+        'Cycle Brand',
+        'Long Square',
+        'Clove Brand',
+        'Masala Small'
+    ];
+}
 
 if (!empty($termoBusca)) {
-    // Buscar produtos que contenham o termo no nome ou categoria
-    $query = "SELECT * FROM produtos 
-              WHERE (nome LIKE :termo OR categoria LIKE :termo) 
-              AND tipo = 'produto'
-              ORDER BY nome";
-    $stmt = $conn->prepare($query);
-    $termoLike = '%' . $termoBusca . '%';
-    $stmt->bindParam(':termo', $termoLike);
-    $stmt->execute();
-    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Busca inteligente
+    $produtos = buscarProdutosInteligente($conn, $termoBusca);
     $totalResultados = count($produtos);
+    
+    // Se encontrou produtos, buscar similares
+    if ($totalResultados > 0) {
+        $produtosSimilares = buscarProdutosSimilares($conn, $produtos);
+    } else {
+        // Se não encontrou nada, gerar sugestões
+        $sugestoesBusca = gerarSugestoesBusca();
+    }
 }
 
 // Se o usuário estiver logado, inicializamos o carrinho
@@ -99,6 +201,75 @@ if (usuarioEstaLogado()) {
         .no-results h2 {
             font-size: 24px;
             margin-bottom: 15px;
+        }
+        
+        .search-suggestions {
+            margin-top: 30px;
+        }
+        
+        .search-suggestions h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .suggestions-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .suggestion-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 25px;
+            color: #495057;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .suggestion-link:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+        
+        .similar-products-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e5e5;
+        }
+        
+        .similar-products-section h3 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #333;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .suggestions-grid {
+                justify-content: center;
+            }
+            
+            .suggestion-link {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            
+            .similar-products-section {
+                margin-top: 30px;
+            }
+            
+            .similar-products-section h3 {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
         }
     </style>
 
@@ -315,7 +486,20 @@ if (usuarioEstaLogado()) {
             <?php elseif ($totalResultados == 0): ?>
                 <div class="no-results">
                     <h2>Nenhum produto encontrado</h2>
-                    <p>Tente usar termos diferentes ou navegue pelas nossas categorias.</p>
+                    <p>Tente usar termos diferentes ou experimente uma das sugestões abaixo:</p>
+                    
+                    <?php if (!empty($sugestoesBusca)): ?>
+                        <div class="search-suggestions">
+                            <h3>Sugestões de busca:</h3>
+                            <div class="suggestions-grid">
+                                <?php foreach ($sugestoesBusca as $sugestao): ?>
+                                    <a href="buscar.php?q=<?php echo urlencode($sugestao); ?>" class="suggestion-link">
+                                        <?php echo htmlspecialchars($sugestao); ?>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             <?php else: ?>
                 <div class="products-grid">
@@ -388,6 +572,83 @@ if (usuarioEstaLogado()) {
                         </div>
                     <?php endforeach; ?>
                 </div>
+                
+                <!-- Seção de produtos similares -->
+                <?php if (!empty($produtosSimilares)): ?>
+                    <div class="similar-products-section">
+                        <h3>Produtos que podem interessar você:</h3>
+                        <div class="products-grid">
+                            <?php foreach ($produtosSimilares as $produto): 
+                                // Nome padronizado para exibição
+                                $nomePadronizado = formatarTituloProduto($produto['categoria'], $produto['nome']);
+
+                                // Preparar variação para o CAMINHO DA IMAGEM
+                                $variacaoApenas = str_ireplace($produto['categoria'] . ' -', '', $produto['nome']);
+                                $variacaoApenas = str_ireplace('incenso', '', $variacaoApenas);
+                                $variacaoApenas = trim(str_replace(['"', '&quot;', "'"], '', $variacaoApenas));
+                                $variacaoParaImagem = $variacaoApenas;
+                                
+                                // Link dinâmico para produto por ID
+                                $linkProduto = 'produto.php?id=' . (int)$produto['id'];
+                            ?>
+                                <div class="product-card">
+                                    <span class="favorite-icon" data-produto-id="<?php echo (int)$produto['id']; ?>" role="button" aria-label="Adicionar aos favoritos">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M12 21s-6.5-4.35-9.33-7.17C.63 11.79.63 8.21 2.67 6.17c2.04-2.04 5.34-2.04 7.38 0L12 8.12l1.95-1.95c2.04-2.04 5.34-2.04 7.38 0 2.04 2.04 2.04 5.62 0 7.66C18.5 16.65 12 21 12 21z" stroke="#6b7280" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                    <div class="product-image-container">
+                                        <a href="<?php echo $linkProduto; ?>" class="no-underline" aria-label="Ver produto: <?php echo htmlspecialchars($nomePadronizado); ?>">
+                                        <img 
+                                            src="<?php echo getImagePath($produto['categoria'], $variacaoParaImagem); ?>" 
+                                            alt="<?php echo htmlspecialchars($nomePadronizado); ?>"
+                                            class="product-image"
+                                        >
+                                        </a>
+                                    </div>
+                                    <div class="product-info">
+                                        <h2 class="product-name">
+                                            <a href="<?php echo $linkProduto; ?>" class="no-underline">
+                                            <?php echo htmlspecialchars($nomePadronizado); ?>
+                                            </a>
+                                        </h2>
+                                        
+                                        <?php if (usuarioEstaLogado()): ?>
+                                            <div class="price-area">
+                                                <div class="price-row">
+                                                    <div class="price">
+                                                        <span class="currency">R$</span> <strong class="amount"><?php echo number_format($produto['preco'], 2, ',', '.'); ?></strong>
+                                                    </div>
+                                                    <div class="qty-stepper" data-id="<?php echo (int)$produto['id']; ?>">
+                                                        <button type="button" class="qty-btn minus" aria-label="Diminuir quantidade">&minus;</button>
+                                                        <input type="number" id="qty_<?php echo $produto['id']; ?>" class="quantity-input" value="1" min="1" inputmode="numeric" pattern="[0-9]*" aria-label="Quantidade">
+                                                        <button type="button" class="qty-btn plus" aria-label="Aumentar quantidade">+</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="cart-controls">
+                                                <button onclick="adicionarAoCarrinho('<?php echo $produto['id']; ?>', '<?php echo htmlspecialchars($nomePadronizado); ?>')" 
+                                                        class="btn btn-cart btn-full">
+                                                    Adicionar ao carrinho
+                                                </button>
+                                                <a href="https://wa.me/5548996107541?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20produto%3A%20<?php echo urlencode($nomePadronizado); ?>" target="_blank" class="btn btn-whatsapp btn-full">
+                                                    Comprar pelo WhatsApp
+                                                </a>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="cart-controls">
+                                                <a href="login.html" class="btn btn-cart">Ver preço</a>
+                                                <a href="https://wa.me/5548996107541?text=Olá, tenho interesse no produto: <?php echo urlencode($nomePadronizado); ?>" target="_blank" class="btn btn-whatsapp">
+                                                    Comprar pelo WhatsApp
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </main>
     </div>
