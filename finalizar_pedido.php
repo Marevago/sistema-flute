@@ -90,7 +90,8 @@ try {
     ignore_user_abort(true);
     $response = [
         'sucesso' => true,
-        'pedido_id' => $pedido_id
+        'pedido_id' => $pedido_id,
+        'valor_total' => $valor_total
     ];
     echo json_encode($response);
     // Força o flush da resposta se possível

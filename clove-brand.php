@@ -39,10 +39,16 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clove Brand - Flute Incensos</title>
+    <link rel="icon" type="image/png" href="uploads/flute_logo.png">
+    <link rel="apple-touch-icon" href="uploads/flute_logo.png">
+    <?php // Google Analytics
+        $gaInclude = __DIR__ . '/config/analytics.php';
+        if (file_exists($gaInclude)) { include $gaInclude; }
+    ?>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="styles.css?v=1.2">
+    <link rel="stylesheet" href="styles.css?v=1.3">
     <style>
         .cart-mini.cart-bump { animation: cart-bump 500ms ease; }
         @keyframes cart-bump { 0%{transform:scale(1)} 30%{transform:scale(1.15)} 60%{transform:scale(.95)} 100%{transform:scale(1)} }
@@ -71,13 +77,7 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
         .price-area .price-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; }
         .cart-controls { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
         .btn.btn-full { width: 100%; }
-        /* Rating (match index.php) */
-        .rating { display:flex; align-items:center; gap:8px; margin: 2px 0 8px; width: 100%; }
-        .stars { position: relative; display: inline-block; }
-        .stars-bg, .stars-fill { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif; letter-spacing: 2px; }
-        .stars-bg { color: #d7dbe0; }
-        .stars-fill { position: absolute; left: 0; top: 0; white-space: nowrap; overflow: hidden; color: #f5a524; }
-        .rating-num { font-size: 13px; color:#6b7280; font-weight: 600; }
+        
     </style>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
@@ -346,6 +346,27 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
         </nav>
         <div class="backdrop" id="backdrop"></div>
+        
+        <!-- Barra de busca mobile sempre visível -->
+        <div class="mobile-search-fixed" style="display: none; background: #fff; border-bottom: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div class="container">
+                <form class="mobile-search-form" action="buscar.php" method="get" style="display: flex; align-items: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 25px; padding: 10px 20px; gap: 12px; margin: 0 15px;">
+                    <input type="text" name="q" placeholder="Digite o que você procura..." aria-label="Buscar produtos" style="flex: 1; border: none; background: transparent; outline: none; font-size: 16px; color: #333; padding: 0;">
+                    <button type="submit" aria-label="Buscar" class="mobile-search-submit" style="background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <style>
+        @media (max-width: 768px) {
+            .mobile-search-fixed {
+                display: block !important;
+                padding: 12px 0;
+            }
+        }
+        </style>
     </header>
 
     <!-- Slider main container -->
@@ -399,17 +420,7 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
                             <?php echo htmlspecialchars($nomePadronizado); ?>
                             <?php if ($linkProduto): ?></a><?php endif; ?>
                         </h2>
-                        <?php 
-                          $rating = 4.5 + (($produto['id'] % 5) * 0.1);
-                          $ratingPct = min(100, max(0, ($rating / 5) * 100));
-                        ?>
-                        <div class="rating" aria-label="Avaliação: <?php echo number_format($rating,1,',','.'); ?> de 5">
-                            <div class="stars" role="img" aria-hidden="true">
-                                <div class="stars-bg">★★★★★</div>
-                                <div class="stars-fill" style="width: <?php echo number_format($ratingPct,0,'.',''); ?>%">★★★★★</div>
-                            </div>
-                            <span class="rating-num"><?php echo number_format($rating,1,',','.'); ?></span>
-                        </div>
+                        
                         <?php if (usuarioEstaLogado()): ?>
                             <div class="price-area">
                                 <div class="price-row">

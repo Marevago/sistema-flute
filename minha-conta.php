@@ -72,9 +72,13 @@ function formatCurrencyBR($value) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Conta - Flute Incensos</title>
+    <?php // Google Analytics
+        $gaInclude = __DIR__ . '/config/analytics.php';
+        if (file_exists($gaInclude)) { include $gaInclude; }
+    ?>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=1.2">
+    <link rel="stylesheet" href="styles.css?v=1.3">
     <style>
         .account-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .account-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }

@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Seu Carrinho - Flute Incensos</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=1.2">
+    <link rel="stylesheet" href="styles.css?v=1.3">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <?php include __DIR__ . '/config/analytics.php'; ?>
 
@@ -639,7 +639,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (data.sucesso) {
                     alert('Pedido finalizado com sucesso!');
                     try { localStorage.setItem('cart_updated', Date.now().toString()); } catch (e) {}
-                    window.location.href = 'pedido_confirmado.php';
+                    // Pass order data to confirmation page
+                    window.location.href = `pedido_confirmado.php?pedido_id=${data.pedido_id}&valor_total=${encodeURIComponent(data.valor_total)}`;
                 } else {
                     alert(data.erro || 'Erro ao finalizar pedido');
                 }
