@@ -613,11 +613,48 @@ function usuarioEstaLogado() {
         </div>
         
         <style>
+        /* Header fixo */
+        .site-header {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Compensar altura do header fixo */
+        body {
+            padding-top: 140px; /* Ajustar conforme altura do header */
+        }
+        
+        /* Ajuste para mobile */
         @media (max-width: 768px) {
+            body {
+                padding-top: 120px; /* Altura menor no mobile */
+            }
+            
             .mobile-search-fixed {
                 display: block !important;
                 padding: 12px 0;
+                position: relative;
+                z-index: 9998;
             }
+            
+            /* Garantir que o menu mobile apareça sobre tudo */
+            .main-nav.open {
+                z-index: 10000 !important;
+            }
+            
+            .backdrop.open {
+                z-index: 9999 !important;
+            }
+        }
+        
+        /* Garantir que dropdowns apareçam corretamente */
+        .dropdown-content {
+            z-index: 10001;
         }
         </style>
     </header>
