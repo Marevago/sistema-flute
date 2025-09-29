@@ -42,40 +42,80 @@ function buscarProdutosInteligente($conn, $termo) {
         'packet' => ['packet', 'pacote', 'embalagem']
     ];
     
-    $termosParaBuscar = [$termo];
+    // Palavras conectivas que devem ser ignoradas na busca
+    $palavrasIgnorar = ['de', 'da', 'do', 'das', 'dos', 'para', 'com', 'sem', 'por', 'em', 'na', 'no', 'nas', 'nos', 'a', 'o', 'as', 'os', 'e', 'ou', 'que', 'todos', 'todas', 'todo', 'toda'];
     
-    // Adicionar sinônimos
-    foreach ($sinonimos as $palavra => $lista) {
-        if (stripos($termo, $palavra) !== false) {
-            $termosParaBuscar = array_merge($termosParaBuscar, $lista);
+    // Quebrar termo em palavras individuais
+    $palavrasBusca = preg_split('/\s+/', strtolower(trim($termo)));
+    $palavrasBusca = array_filter($palavrasBusca, function($palavra) use ($palavrasIgnorar) {
+        return strlen($palavra) >= 2 && !in_array($palavra, $palavrasIgnorar);
+    });
+    
+    // Expandir com sinônimos
+    $todasPalavras = [];
+    foreach ($palavrasBusca as $palavra) {
+        $todasPalavras[] = $palavra;
+        
+        // Adicionar sinônimos
+        foreach ($sinonimos as $chave => $lista) {
+            if (stripos($palavra, $chave) !== false || in_array($palavra, $lista)) {
+                $todasPalavras = array_merge($todasPalavras, $lista);
+            }
         }
     }
     
-    // Remover duplicatas e termo original
-    $termosParaBuscar = array_unique($termosParaBuscar);
+    $todasPalavras = array_unique($todasPalavras);
     
-    // Construir query dinâmica
-    $conditions = [];
-    $params = [];
-    
-    foreach ($termosParaBuscar as $index => $termoAtual) {
-        $paramName = ':termo' . $index;
-        $conditions[] = "(nome LIKE $paramName OR categoria LIKE $paramName)";
-        $params[$paramName] = '%' . $termoAtual . '%';
+    if (empty($todasPalavras)) {
+        return [];
     }
     
+    // Construir query com sistema de pontuação avançado
+    $conditions = [];
+    $params = [];
+    $scoreConditions = [];
+    
+    // Busca por termo completo (maior pontuação)
+    $params[':termoCompleto'] = '%' . $termo . '%';
+    $scoreConditions[] = "CASE WHEN (nome LIKE :termoCompleto OR categoria LIKE :termoCompleto) THEN 100 ELSE 0 END";
+    
+    // Busca por palavras individuais
+    foreach ($todasPalavras as $index => $palavra) {
+        $paramNome = ':palavra' . $index;
+        $paramCategoria = ':categoria' . $index;
+        
+        $conditions[] = "(nome LIKE $paramNome OR categoria LIKE $paramCategoria)";
+        $params[$paramNome] = '%' . $palavra . '%';
+        $params[$paramCategoria] = '%' . $palavra . '%';
+        
+        // Pontuação por palavra encontrada
+        $scoreConditions[] = "CASE WHEN nome LIKE $paramNome THEN 10 ELSE 0 END";
+        $scoreConditions[] = "CASE WHEN categoria LIKE $paramCategoria THEN 5 ELSE 0 END";
+    }
+    
+    // Bonus para múltiplas palavras encontradas
+    $bonusConditions = [];
+    if (count($palavrasBusca) > 1) {
+        foreach ($palavrasBusca as $index => $palavra) {
+            $paramBonus = ':bonus' . $index;
+            $params[$paramBonus] = '%' . $palavra . '%';
+            $bonusConditions[] = "(nome LIKE $paramBonus OR categoria LIKE $paramBonus)";
+        }
+        
+        if (!empty($bonusConditions)) {
+            $scoreConditions[] = "CASE WHEN (" . implode(' AND ', $bonusConditions) . ") THEN 50 ELSE 0 END";
+        }
+    }
+    
+    $scoreCalculation = implode(' + ', $scoreConditions);
+    
     $query = "SELECT *, 
-              CASE 
-                WHEN nome LIKE :termoExato THEN 3
-                WHEN categoria LIKE :termoExato THEN 2
-                ELSE 1
-              END as relevancia
+              ($scoreCalculation) as relevancia
               FROM produtos 
               WHERE (" . implode(' OR ', $conditions) . ") 
               AND tipo = 'produto'
+              HAVING relevancia > 0
               ORDER BY relevancia DESC, nome ASC";
-    
-    $params[':termoExato'] = '%' . $termo . '%';
     
     $stmt = $conn->prepare($query);
     foreach ($params as $param => $value) {
