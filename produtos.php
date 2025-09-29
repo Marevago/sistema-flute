@@ -101,13 +101,35 @@ if (usuarioEstaLogado()) {
             color: #fff;
             padding: 12px 16px;
             border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
-        .cart-message.success { background: #2e7d32; }
-        .cart-message.error { background: #c62828; }
-        /* Favoritos (coração) */
+        
+        /* Compensar altura do header fixo */
+        body {
+            padding-top: 140px;
+        }
+        
+        /* Ajuste para mobile */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 120px;
+            }
+            
+            .main-nav.open {
+                z-index: 10000 !important;
+            }
+            
+            .backdrop.open {
+                z-index: 9999 !important;
+            }
+        }
+        
+        .dropdown-content {
+            z-index: 10001;
+        }
+    </style>
+    
+    <style>
+    /* favoritos (coração) */
         .product-card { position: relative; }
         .favorite-icon {
             position: absolute;
