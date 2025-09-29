@@ -103,6 +103,17 @@ if (usuarioEstaLogado()) {
             border-radius: 6px;
         }
         
+        /* Header fixo */
+        .site-header {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
         /* Compensar altura do header fixo */
         body {
             padding-top: 140px;
