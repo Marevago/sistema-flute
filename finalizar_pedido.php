@@ -49,25 +49,29 @@ try {
         exit;
     }
     
-    // Calcula valor total
+    // Lê corpo JSON (quando enviado pelo front-end)
+    $raw = file_get_contents('php://input');
+    $json = json_decode($raw ?: '', true) ?: [];
+    $frete_valor = isset($json['frete_valor']) ? (float)$json['frete_valor'] : 0.0;
+    $frete_metodo = isset($json['frete_metodo']) ? (string)$json['frete_metodo'] : '';
+    $frete_prazo = isset($json['frete_prazo']) ? (int)$json['frete_prazo'] : 0;
+
+    // Calcula valor total (itens + frete, se houver)
     $valor_total = 0;
     foreach ($itens as $item) {
         $valor_total += $item['subtotal'];
     }
+    $valor_itens = $valor_total;
+    if ($frete_valor > 0) {
+        $valor_total += $frete_valor;
+    }
     
-    // Cria o pedido
-    $stmt = $conn->prepare("
-        INSERT INTO pedidos (usuario_id, valor_total)
-        VALUES (?, ?)
-    ");
+    $stmt = $conn->prepare("\n        INSERT INTO pedidos (usuario_id, valor_total)\n        VALUES (?, ?)\n    ");
     $stmt->execute([$_SESSION['user_id'], $valor_total]);
     $pedido_id = $conn->lastInsertId();
     
     // Insere os itens do pedido
-    $stmt = $conn->prepare("
-        INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario)
-        VALUES (?, ?, ?, ?)
-    ");
+    $stmt = $conn->prepare("\n        INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario)\n        VALUES (?, ?, ?, ?)\n    ");
     
     foreach ($itens as $item) {
         $stmt->execute([
@@ -91,7 +95,15 @@ try {
     $response = [
         'sucesso' => true,
         'pedido_id' => $pedido_id,
-        'valor_total' => $valor_total
+        'valor_total' => $valor_total,
+        'resumo' => [
+            'itens' => $valor_itens,
+            'frete' => [
+                'valor' => $frete_valor,
+                'metodo' => $frete_metodo,
+                'prazo' => $frete_prazo
+            ]
+        ]
     ];
     echo json_encode($response);
     // Força o flush da resposta se possível
