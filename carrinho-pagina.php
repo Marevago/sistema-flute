@@ -296,6 +296,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Footer simples (mantemos até integrar com global) */
         .footer { background-color: #333; color:#fff; text-align:center; padding:20px; margin-top:40px; }
         .checkout-note { font-size: 13px; color:#666; margin-top: 8px; }
+        
+        /* Estilos para opções de frete */
+        .shipping-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            position: relative;
+        }
+        .shipping-option:hover {
+            border-color: #ccba2e;
+            background-color: #fafafa;
+            box-shadow: 0 2px 8px rgba(204, 186, 46, 0.15);
+        }
+        .shipping-option.selected {
+            border-color: #ccba2e;
+            background-color: #fffbf0;
+            box-shadow: 0 2px 12px rgba(204, 186, 46, 0.25);
+        }
+        .shipping-option.selected::before {
+            content: "✓";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ccba2e;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .shipping-option-info {
+            flex: 1;
+            padding-right: 10px;
+        }
+        .shipping-option-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+        .shipping-option-details {
+            font-size: 12px;
+            color: #666;
+        }
+        .shipping-option-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2ecc71;
+            text-align: right;
+        }
+        
+        /* Seção de frete */
+        .shipping-section h4 {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        #shipping-choices {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        /* Responsivo para opções de frete */
+        @media (max-width: 768px) {
+            .shipping-option {
+                padding: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .shipping-option-info {
+                padding-right: 0;
+                width: 100%;
+            }
+            .shipping-option-price {
+                text-align: left;
+                font-size: 18px;
+            }
+            .shipping-option.selected::before {
+                top: 6px;
+                right: 6px;
+            }
+        }
     </style>
     <script>
         // Script de cabeçalho e menu (replicado de produtos.php)
@@ -376,6 +470,135 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             void cart.offsetWidth;
             cart.classList.add('cart-bump');
             setTimeout(() => cart.classList.remove('cart-bump'), 500);
+        }
+
+        // ===== Frete: cálculo e UI =====
+        let shippingSelected = null; // { nome, valor, prazo }
+
+        function formatBRL(num) {
+            try { return (Number(num) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } catch (e) { return 'R$ ' + (Number(num) || 0).toFixed(2).replace('.', ','); }
+        }
+
+        function getSubtotalValue() {
+            const text = document.getElementById('total-value')?.textContent || '';
+            // total-value começa como subtotal
+            // extrai números
+            const numbers = text.replace(/[^0-9,\.]/g, '').replace(/\./g, '').replace(',', '.');
+            const val = parseFloat(numbers);
+            // Se não conseguir do total, usa o span do subtotal acima
+            if (!isFinite(val)) {
+                const subText = Array.from(document.querySelectorAll('.summary-row span'))
+                  .map(s => s.textContent)
+                  .find(t => /^R\$/.test(t || '')) || 'R$ 0,00';
+                const n2 = subText.replace(/[^0-9,\.]/g, '').replace(/\./g, '').replace(',', '.');
+                return parseFloat(n2) || 0;
+            }
+            return val || 0;
+        }
+
+        function updateTotalDisplay() {
+            const base = getSubtotalValue();
+            const totalEl = document.getElementById('total-value');
+            const shipRow = document.getElementById('shipping-row');
+            const shipNameEl = document.getElementById('shipping-method-name');
+            const shipValEl = document.getElementById('shipping-value');
+
+            if (shippingSelected && shipRow && shipNameEl && shipValEl) {
+                shipRow.style.display = '';
+                shipNameEl.textContent = shippingSelected.nome;
+                shipValEl.textContent = formatBRL(shippingSelected.valor);
+                if (totalEl) totalEl.textContent = formatBRL(base + Number(shippingSelected.valor));
+            } else {
+                if (shipRow) shipRow.style.display = 'none';
+                if (totalEl) totalEl.textContent = formatBRL(base);
+            }
+        }
+
+        function maskCEP(value) {
+            const v = (value || '').replace(/\D/g, '').slice(0, 8);
+            if (v.length > 5) return v.slice(0,5) + '-' + v.slice(5);
+            return v;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cepInput = document.getElementById('cep-input');
+            if (cepInput) {
+                cepInput.addEventListener('input', () => {
+                    const pos = cepInput.selectionStart;
+                    cepInput.value = maskCEP(cepInput.value);
+                    cepInput.setSelectionRange(pos, pos);
+                });
+            }
+        });
+
+        async function calcularFrete() {
+            const cepEl = document.getElementById('cep-input');
+            const optionsEl = document.getElementById('shipping-options');
+            const choicesEl = document.getElementById('shipping-choices');
+            const errorEl = document.getElementById('shipping-error');
+            if (!cepEl || !optionsEl || !choicesEl || !errorEl) return;
+
+            shippingSelected = null;
+            updateTotalDisplay();
+
+            const rawCep = (cepEl.value || '').replace(/\D/g, '');
+            if (rawCep.length !== 8) {
+                errorEl.textContent = 'Informe um CEP válido (8 dígitos).';
+                errorEl.style.display = '';
+                optionsEl.style.display = 'none';
+                return;
+            }
+            errorEl.style.display = 'none';
+            optionsEl.style.display = '';
+            choicesEl.innerHTML = '<div style="font-size:14px;color:#666;">Calculando frete...</div>';
+
+            try {
+                const resp = await fetch('calcular_frete.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cep: rawCep })
+                });
+                const data = await resp.json();
+                if (!data || data.erro) throw new Error(data?.erro || 'Falha ao calcular frete.');
+
+                const opcoes = data.opcoes || {};
+                const entries = Object.values(opcoes);
+                if (!entries.length) throw new Error('Nenhuma opção de frete disponível.');
+
+                // Renderizar opções
+                choicesEl.innerHTML = '';
+                entries.forEach((opt, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'shipping-option';
+                    div.setAttribute('role', 'button');
+                    div.setAttribute('tabindex', '0');
+                    div.innerHTML = `
+                        <div class="shipping-option-info">
+                            <div class="shipping-option-name">${opt.nome || 'Frete'}</div>
+                            <div class="shipping-option-details">Prazo estimado: ${opt.prazo || 0} dia(s) útil(eis)</div>
+                        </div>
+                        <div class="shipping-option-price">${formatBRL(opt.valor || 0)}</div>
+                    `;
+                    div.addEventListener('click', () => selecionarOpcaoFrete(div, opt));
+                    div.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selecionarOpcaoFrete(div, opt); }});
+                    choicesEl.appendChild(div);
+                    if (idx === 0) {
+                        // seleção padrão: primeira opção
+                        setTimeout(() => selecionarOpcaoFrete(div, opt), 0);
+                    }
+                });
+            } catch (e) {
+                errorEl.textContent = e.message || 'Erro ao calcular frete.';
+                errorEl.style.display = '';
+                optionsEl.style.display = 'none';
+            }
+        }
+
+        function selecionarOpcaoFrete(el, opt) {
+            document.querySelectorAll('.shipping-option').forEach(x => x.classList.remove('selected'));
+            if (el) el.classList.add('selected');
+            shippingSelected = { nome: opt.nome, valor: Number(opt.valor) || 0, prazo: opt.prazo };
+            updateTotalDisplay();
         }
     </script>
 </head>
@@ -541,9 +764,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span>Subtotal:</span>
                     <span>R$ <?php echo number_format($total, 2, ',', '.'); ?></span>
                 </div>
+                
+                <!-- Seção de Cálculo de Frete -->
+                <div class="shipping-section" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
+                    <h4 style="margin-bottom: 10px; font-size: 16px;">Calcular Frete</h4>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" 
+                               id="cep-input" 
+                               placeholder="Digite seu CEP" 
+                               maxlength="9"
+                               style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <button onclick="calcularFrete()" 
+                                class="btn btn-secondary" 
+                                style="white-space: nowrap;">
+                            Calcular
+                        </button>
+                    </div>
+                    <div id="shipping-options" style="display: none; margin-top: 15px;">
+                        <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Selecione uma opção de frete:</p>
+                        <div id="shipping-choices"></div>
+                    </div>
+                    <div id="shipping-error" style="display: none; color: #c62828; font-size: 13px; margin-top: 8px;"></div>
+                </div>
+                
+                <div class="summary-row" id="shipping-row" style="display: none;">
+                    <span>Frete (<span id="shipping-method-name"></span>):</span>
+                    <span id="shipping-value">R$ 0,00</span>
+                </div>
+                
                 <div class="summary-row total-row">
                     <span>Total:</span>
-                    <span>R$ <?php echo number_format($total, 2, ',', '.'); ?></span>
+                    <span id="total-value">R$ <?php echo number_format($total, 2, ',', '.'); ?></span>
                 </div>
                 <div class="min-progress" aria-live="polite">
                     <div class="label">
@@ -630,8 +881,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         async function finalizarPedido() {
             try {
+                // Exigir seleção de frete
+                if (!shippingSelected) {
+                    alert('Por favor, calcule e selecione uma opção de frete antes de finalizar.');
+                    const cepEl = document.getElementById('cep-input');
+                    if (cepEl) cepEl.focus();
+                    return;
+                }
+
+                const payload = {
+                    frete_valor: Number(shippingSelected.valor) || 0,
+                    frete_metodo: shippingSelected.nome || 'Frete',
+                    frete_prazo: shippingSelected.prazo || 0
+                };
+
                 const response = await fetch('finalizar_pedido.php', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -648,8 +915,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 console.error('Erro ao finalizar pedido:', error);
                 alert('Erro ao finalizar pedido: problema de rede ou servidor indisponível. Tente novamente em instantes.');
             }
-
-            
         }
     </script>
 </body>
