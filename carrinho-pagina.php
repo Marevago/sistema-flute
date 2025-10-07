@@ -134,7 +134,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
         }
 
-        .main-container { max-width: 1200px; margin: 0 auto; padding: 20px; overflow-x: hidden; }
+        .main-container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+            overflow-x: hidden; 
+        }
+        
+        .cart-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+            align-items: flex-start;
+        }
+        
+        .cart-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .cart-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+        }
+        
+        .cart-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .cart-sidebar {
+            position: sticky;
+            top: 20px;
+        }
 
         /* Responsividade da tabela do carrinho */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -142,56 +179,140 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .cart-table th, .cart-table td { word-break: break-word; }
         .quantity-control { flex-wrap: nowrap; }
 
+        @media (max-width: 1024px) {
+            .cart-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .cart-sidebar {
+                position: static;
+                order: -1;
+            }
+        }
+
         @media (max-width: 768px) {
+            .main-container {
+                padding: 20px 15px;
+            }
+            
+            .cart-header {
+                padding: 20px 24px;
+            }
+            
+            .cart-table th,
+            .cart-table td {
+                padding: 16px 24px;
+            }
+            
             /* Stacked layout: remove need for horizontal scroll */
             .table-responsive { overflow-x: visible; }
             .cart-table { min-width: 0; border-collapse: separate; border-spacing: 0 10px; }
             .cart-table thead { display: none; }
-            .cart-table tbody tr { display: block; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 12px; }
-            .cart-table tbody tr td { display: grid; grid-template-columns: minmax(90px, 40%) 1fr; align-items: center; padding: 8px 0; border-bottom: none; }
-            .cart-table tbody tr td::before { content: attr(data-label); font-weight: 600; color: #555; padding-right: 10px; }
-            .cart-table tbody tr td:last-child { padding-bottom: 0; }
-            .btn { font-size: 14px; padding: 8px 12px; }
-            .btn { font-size: 14px; padding: 8px 12px; }
-            .quantity-btn { padding: 4px 8px; }
-            .quantity-control { justify-content: flex-start; }
-            .cart-table tbody tr td[data-label="Ações"] .btn { width: 100%; }
-            .cart-table tbody tr td[data-label="Quantidade"] .quantity-control { gap: 8px; }
+            .cart-table tbody tr { 
+                display: block; 
+                background: #fff; 
+                padding: 20px; 
+                border-radius: 12px; 
+                box-shadow: 0 2px 8px rgba(0,0,0,.08); 
+                margin-bottom: 16px; 
+                border: 1px solid #f0f0f0;
+            }
+            .cart-table tbody tr td { 
+                display: grid; 
+                grid-template-columns: minmax(120px, 40%) 1fr; 
+                align-items: center; 
+                padding: 12px 0; 
+                border-bottom: 1px solid #f5f5f5; 
+            }
+            .cart-table tbody tr td::before { 
+                content: attr(data-label); 
+                font-weight: 600; 
+                color: #666; 
+                padding-right: 16px; 
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .cart-table tbody tr td:last-child { 
+                padding-bottom: 0; 
+                border-bottom: none;
+            }
+            .btn { font-size: 14px; padding: 10px 16px; }
+            .quantity-control { 
+                justify-content: flex-start; 
+                max-width: 140px;
+            }
+            .cart-table tbody tr td[data-label="Ações"] .btn { width: 100%; max-width: 120px; }
+            
+            .order-summary {
+                padding: 24px;
+            }
         }
 
         /* Estilos específicos do carrinho */
         .cart-table {
             width: 100%;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 30px;
-            overflow: hidden;
         }
 
         .cart-table th,
         .cart-table td {
-            padding: 15px;
+            padding: 20px 32px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
         }
 
         .cart-table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-            color: #333;
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cart-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .cart-table tbody tr:hover {
+            background-color: #fafafa;
         }
 
         .cart-table tr:last-child td {
             border-bottom: none;
         }
 
+        .product-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .product-price {
+            font-weight: 600;
+            color: #2ecc71;
+            font-size: 16px;
+        }
+
         /* Área do resumo do pedido */
         .order-summary {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+        }
+
+        .order-summary h3 {
+            margin: 0 0 24px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 16px;
         }
 
         .summary-items { margin: 10px 0 6px; }
@@ -260,15 +381,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .quantity-control {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            background: white;
         }
 
         .quantity-btn {
-            padding: 5px 10px;
+            padding: 8px 12px;
             border: none;
-            background-color: #eee;
+            background-color: #f8f9fa;
             cursor: pointer;
-            border-radius: 4px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s ease;
+            min-width: 36px;
+        }
+
+        .quantity-btn:hover {
+            background-color: #e9ecef;
+            color: #333;
+        }
+
+        .quantity-control span {
+            padding: 8px 16px;
+            font-weight: 600;
+            color: #333;
+            min-width: 50px;
+            text-align: center;
+            background: white;
         }
 
         .empty-cart {
@@ -681,16 +823,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Conteúdo Principal -->
     <div class="main-container">
-        <h2>Seu Carrinho</h2>
-
         <?php if (empty($itens)): ?>
             <div class="empty-cart">
                 <p>Seu carrinho está vazio. Que tal adicionar alguns produtos?</p>
                 <a href="produtos.php" class="btn btn-primary">Ver Produtos</a>
             </div>
         <?php else: ?>
-            <div class="table-responsive">
-            <table class="cart-table">
+            <div class="cart-layout">
+                <div class="cart-content">
+                    <div class="cart-header">
+                        <h2>Seu Carrinho</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="cart-table">
                 <thead>
                     <tr>
                         <th>Produto</th>
@@ -703,14 +848,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <tbody>
                     <?php foreach ($itens as $item): ?>
                         <tr>
-                        <td data-label="Produto">
-                                <?php 
-                                $nomeBase = !empty($item['variacao']) ? $item['variacao'] : $item['nome'];
-                                $display = formatarTituloProduto($item['categoria'] ?? '', $nomeBase);
-                                echo htmlspecialchars($display);
-                            ?>
-                        </td>
-                            <td data-label="Preço Unitário">R$ <?php echo number_format($item['preco'], 2, ',', '.'); ?></td>
+                            <td data-label="Produto">
+                                <div class="product-name">
+                                    <?php 
+                                    $nomeBase = !empty($item['variacao']) ? $item['variacao'] : $item['nome'];
+                                    $display = formatarTituloProduto($item['categoria'] ?? '', $nomeBase);
+                                    echo htmlspecialchars($display);
+                                    ?>
+                                </div>
+                            </td>
+                            <td data-label="Preço Unitário">
+                                <div class="product-price">R$ <?php echo number_format($item['preco'], 2, ',', '.'); ?></div>
+                            </td>
                             <td data-label="Quantidade">
                                 <div class="quantity-control">
                                     <button class="quantity-btn" 
@@ -720,7 +869,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             onclick="atualizarQuantidade(<?php echo $item['carrinho_id']; ?>, 1)">+</button>
                                 </div>
                             </td>
-                            <td data-label="Subtotal">R$ <?php echo number_format($item['subtotal'], 2, ',', '.'); ?></td>
+                            <td data-label="Subtotal">
+                                <div class="product-price">R$ <?php echo number_format($item['subtotal'], 2, ',', '.'); ?></div>
+                            </td>
                             <td data-label="Ações">
                                 <button onclick="removerItem(<?php echo $item['carrinho_id']; ?>)" 
                                         class="btn btn-secondary">Remover</button>
@@ -728,10 +879,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
-            </table>
-            </div>
-
-            <div class="order-summary">
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="cart-sidebar">
+                    <div class="order-summary">
                 <h3>Resumo do Pedido</h3>
                 <?php 
                     // Monta resumo textual dos itens com quantidade
@@ -826,6 +979,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <p class="checkout-note">Você não será cobrado agora. Após a finalização do pedido, entraremos em contato para combinar o frete e a forma de pagamento.</p>
                 <?php endif; ?>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
     </div>
