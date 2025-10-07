@@ -249,7 +249,7 @@ if (usuarioEstaLogado()) {
                 if (data.sucesso) {
                     mostrarMensagem(`${nomeProduto} adicionado ao carrinho!`, 'success');
                     atualizarContadorCarrinho();
-                    pulseCartIcon();
+                    if (typeof pulseCartIcon === "function") pulseCartIcon();
                 } else {
                     mostrarMensagem(data.erro || 'Erro ao adicionar ao carrinho.', 'error');
                 }

@@ -198,7 +198,7 @@ $cloveBrandProduct = $stmt->fetch(PDO::FETCH_ASSOC);
                 if (data.sucesso) {
                     mostrarMensagem(`${nomeProduto} adicionado ao carrinho!`, 'success');
                     atualizarContadorCarrinho();
-                    pulseCartIcon();
+                    if (typeof pulseCartIcon === "function") pulseCartIcon();
                     try { localStorage.setItem('cart_updated', Date.now().toString()); } catch (e) {}
                 } else {
                     mostrarMensagem(data.erro || 'Erro ao adicionar produto', 'error');

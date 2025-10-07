@@ -887,12 +887,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $variacaoParaImagem = str_ireplace('incenso', '', $nomeBase);
                                     $variacaoParaImagem = str_replace(['"', '&quot;', "'"], '', $variacaoParaImagem);
                                     $variacaoParaImagem = trim($variacaoParaImagem);
+                                    $imagePath = getImagePath($item['categoria'], $variacaoParaImagem);
                                     ?>
+                                    <!-- Debug: <?php echo "Categoria: {$item['categoria']}, Variacao: {$variacaoParaImagem}, Path: {$imagePath}"; ?> -->
                                     <img 
-                                        src="<?php echo getImagePath($item['categoria'], $variacaoParaImagem); ?>" 
+                                        src="<?php echo $imagePath; ?>" 
                                         alt="<?php echo htmlspecialchars($display); ?>"
                                         class="product-image"
-                                        onerror="this.src='uploads/produto-placeholder.jpg'"
+                                        onerror="console.log('Imagem não encontrada: <?php echo $imagePath; ?>'); this.style.display='none'"
                                     >
                                     <div class="product-details">
                                         <div class="product-name"><?php echo htmlspecialchars($display); ?></div>

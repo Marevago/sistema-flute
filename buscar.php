@@ -494,7 +494,7 @@ if (usuarioEstaLogado()) {
                 if (data.sucesso) {
                     mostrarMensagem(`${nomeProduto} adicionado ao carrinho!`, 'success');
                     atualizarContadorCarrinho();
-                    pulseCartIcon();
+                    if (typeof pulseCartIcon === "function") pulseCartIcon();
                     // Emitir evento para sincronização entre páginas
                     localStorage.setItem('cart_updated', Date.now().toString());
                     window.dispatchEvent(new Event('cart_updated'));
