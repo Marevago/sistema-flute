@@ -142,10 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .cart-layout {
-            display: grid;
-            grid-template-columns: 1fr 400px;
+            display: flex;
+            flex-direction: column;
             gap: 40px;
-            align-items: flex-start;
         }
         
         .cart-content {
@@ -156,21 +155,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .cart-header {
-            padding: 24px 32px;
+            padding: 32px 40px;
             border-bottom: 1px solid #eee;
             background: #fafafa;
         }
         
         .cart-header h2 {
             margin: 0;
-            font-size: 24px;
+            font-size: 28px;
             color: #333;
             font-weight: 600;
         }
         
-        .cart-sidebar {
-            position: sticky;
-            top: 20px;
+        .cart-summary-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
         }
 
         /* Responsividade da tabela do carrinho */
@@ -181,13 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         @media (max-width: 1024px) {
             .cart-layout {
-                grid-template-columns: 1fr;
                 gap: 30px;
-            }
-            
-            .cart-sidebar {
-                position: static;
-                order: -1;
             }
         }
 
@@ -248,6 +243,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .order-summary {
                 padding: 24px;
             }
+            
+            .product-image {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .product-info {
+                gap: 12px;
+            }
         }
 
         /* Estilos específicos do carrinho */
@@ -258,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .cart-table th,
         .cart-table td {
-            padding: 20px 32px;
+            padding: 24px 40px;
             text-align: left;
             border-bottom: 1px solid #f0f0f0;
             vertical-align: middle;
@@ -285,10 +289,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-bottom: none;
         }
 
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .product-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .product-details {
+            flex: 1;
+        }
+
         .product-name {
             font-weight: 500;
             color: #333;
             font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .product-code {
+            font-size: 13px;
+            color: #888;
         }
 
         .product-price {
@@ -849,12 +878,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php foreach ($itens as $item): ?>
                         <tr>
                             <td data-label="Produto">
-                                <div class="product-name">
+                                <div class="product-info">
                                     <?php 
                                     $nomeBase = !empty($item['variacao']) ? $item['variacao'] : $item['nome'];
                                     $display = formatarTituloProduto($item['categoria'] ?? '', $nomeBase);
-                                    echo htmlspecialchars($display);
+                                    
+                                    // Preparar variação para o caminho da imagem
+                                    $variacaoParaImagem = str_ireplace('incenso', '', $nomeBase);
+                                    $variacaoParaImagem = str_replace(['"', '&quot;', "'"], '', $variacaoParaImagem);
+                                    $variacaoParaImagem = trim($variacaoParaImagem);
                                     ?>
+                                    <img 
+                                        src="<?php echo getImagePath($item['categoria'], $variacaoParaImagem); ?>" 
+                                        alt="<?php echo htmlspecialchars($display); ?>"
+                                        class="product-image"
+                                        onerror="this.src='uploads/produto-placeholder.jpg'"
+                                    >
+                                    <div class="product-details">
+                                        <div class="product-name"><?php echo htmlspecialchars($display); ?></div>
+                                        <div class="product-code">Cód: <?php echo $item['produto_id']; ?></div>
+                                    </div>
                                 </div>
                             </td>
                             <td data-label="Preço Unitário">
@@ -883,7 +926,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 
-                <div class="cart-sidebar">
+                <div class="cart-summary-section">
                     <div class="order-summary">
                 <h3>Resumo do Pedido</h3>
                 <?php 
