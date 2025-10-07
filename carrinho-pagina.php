@@ -883,18 +883,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $nomeBase = !empty($item['variacao']) ? $item['variacao'] : $item['nome'];
                                     $display = formatarTituloProduto($item['categoria'] ?? '', $nomeBase);
                                     
-                                    // Preparar variação para o caminho da imagem
-                                    $variacaoParaImagem = str_ireplace('incenso', '', $nomeBase);
+                                    // Usar a mesma lógica dos produtos para preparar nome de exibição
+                                    $nomeDeExibicao = $item['nome'];
+                                    if (!empty($item['categoria'])) {
+                                        $nomeDeExibicao = str_ireplace($item['categoria'] . ' -', '', $nomeDeExibicao);
+                                    }
+                                    $nomeDeExibicao = trim(str_replace(['"', '&quot;', "'"], '', $nomeDeExibicao));
+                                    
+                                    // Preparar variação para o CAMINHO DA IMAGEM (igual aos produtos)
+                                    $variacaoParaImagem = str_ireplace('incenso', '', $nomeDeExibicao);
                                     $variacaoParaImagem = str_replace(['"', '&quot;', "'"], '', $variacaoParaImagem);
                                     $variacaoParaImagem = trim($variacaoParaImagem);
                                     $imagePath = getImagePath($item['categoria'], $variacaoParaImagem);
                                     ?>
-                                    <!-- Debug: <?php echo "Categoria: {$item['categoria']}, Variacao: {$variacaoParaImagem}, Path: {$imagePath}"; ?> -->
                                     <img 
                                         src="<?php echo $imagePath; ?>" 
                                         alt="<?php echo htmlspecialchars($display); ?>"
                                         class="product-image"
-                                        onerror="console.log('Imagem não encontrada: <?php echo $imagePath; ?>'); this.style.display='none'"
                                     >
                                     <div class="product-details">
                                         <div class="product-name"><?php echo htmlspecialchars($display); ?></div>
