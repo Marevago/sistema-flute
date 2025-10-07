@@ -27,7 +27,7 @@ try {
     $conn = $db->getConnection();
 
     // Buscar dados do pedido, usuário e itens
-    $stmt = $conn->prepare('SELECT p.id, p.usuario_id, p.valor_total, u.nome, u.email, u.cpf, u.telefone
+    $stmt = $conn->prepare('SELECT p.id, p.usuario_id, p.valor_total, u.nome, u.nome_empresa, u.cnpj, u.email, u.telefone, u.cidade, u.estado
                             FROM pedidos p JOIN usuarios u ON u.id = p.usuario_id
                             WHERE p.id = ?');
     $stmt->execute([$pedido_id]);
@@ -43,14 +43,27 @@ try {
     $stmt->execute([$pedido_id]);
     $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Formatar CNPJ e telefone
+    $cnpj_formatado = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $pedido['cnpj']);
+    $telefone_formatado = '';
+    if (strlen($pedido['telefone']) == 11) {
+        $telefone_formatado = preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $pedido['telefone']);
+    } elseif (strlen($pedido['telefone']) == 10) {
+        $telefone_formatado = preg_replace('/(\d{2})(\d{4})(\d{4})/', '($1) $2-$3', $pedido['telefone']);
+    } else {
+        $telefone_formatado = $pedido['telefone'];
+    }
+
     // Monta corpo do email
     $corpo_email = "
         <h2>Novo Pedido Recebido - #{$pedido_id}</h2>
         <h3>Dados do Cliente:</h3>
-        <p>Nome: {$pedido['nome']}</p>
-        <p>Email: {$pedido['email']}</p>
-        <p>CPF: {$pedido['cpf']}</p>
-        <p>Telefone: {$pedido['telefone']}</p>
+        <p><strong>Nome:</strong> {$pedido['nome']}</p>
+        <p><strong>Empresa:</strong> {$pedido['nome_empresa']}</p>
+        <p><strong>CNPJ:</strong> {$cnpj_formatado}</p>
+        <p><strong>Email:</strong> {$pedido['email']}</p>
+        <p><strong>Telefone:</strong> {$telefone_formatado}</p>
+        <p><strong>Cidade:</strong> {$pedido['cidade']} / {$pedido['estado']}</p>
         <h3>Itens do Pedido:</h3>
         <table border='1' style='border-collapse: collapse; width: 100%;'>
             <tr>

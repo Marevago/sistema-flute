@@ -180,6 +180,14 @@
                     <input id="nome" type="text" name="nome" placeholder="Seu nome completo" required autocomplete="name">
                 </div>
                 <div class="field">
+                    <label for="nome_empresa" class="required">Nome da Empresa</label>
+                    <input id="nome_empresa" type="text" name="nome_empresa" placeholder="Razão social da sua empresa" required autocomplete="organization">
+                </div>
+                <div class="field">
+                    <label for="cnpj" class="required">CNPJ</label>
+                    <input id="cnpj" type="text" name="cnpj" placeholder="00.000.000/0000-00" required autocomplete="off">
+                </div>
+                <div class="field">
                     <label for="email" class="required">E-mail</label>
                     <input id="email" type="email" name="email" placeholder="Seu e-mail" required autocomplete="email">
                 </div>
@@ -260,7 +268,8 @@
         const form = document.getElementById('cadastro-form');
         if (form) {
             const telefoneInput = document.getElementById('telefone');
-            const campos = ['nome', 'email', 'telefone', 'cidade', 'estado', 'senha', 'confirma_senha'];
+            const cnpjInput = document.getElementById('cnpj');
+            const campos = ['nome', 'nome_empresa', 'cnpj', 'email', 'telefone', 'cidade', 'estado', 'senha', 'confirma_senha'];
 
             // Máscara de telefone
             function formatarTelefone(value) {
@@ -278,6 +287,59 @@
             telefoneInput.addEventListener('input', (e) => {
                 e.target.value = formatarTelefone(e.target.value);
             });
+
+            // Máscara de CNPJ
+            function formatarCNPJ(value) {
+                value = value.replace(/\D/g, '');
+                if (value.length > 14) value = value.substring(0, 14);
+                if (value.length > 12) {
+                    value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/, '$1.$2.$3/$4-$5');
+                } else if (value.length > 8) {
+                    value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d*)/, '$1.$2.$3/$4');
+                } else if (value.length > 5) {
+                    value = value.replace(/^(\d{2})(\d{3})(\d*)/, '$1.$2.$3');
+                } else if (value.length > 2) {
+                    value = value.replace(/^(\d{2})(\d*)/, '$1.$2');
+                }
+                return value;
+            }
+            cnpjInput.addEventListener('input', (e) => {
+                e.target.value = formatarCNPJ(e.target.value);
+            });
+
+            // Validação de CNPJ
+            function validarCNPJ(cnpj) {
+                cnpj = cnpj.replace(/[^\d]+/g, '');
+                if (cnpj.length !== 14) return false;
+                if (/^(\d)\1{13}$/.test(cnpj)) return false; // Todos os dígitos iguais
+                
+                let tamanho = cnpj.length - 2;
+                let numeros = cnpj.substring(0, tamanho);
+                let digitos = cnpj.substring(tamanho);
+                let soma = 0;
+                let pos = tamanho - 7;
+                
+                for (let i = tamanho; i >= 1; i--) {
+                    soma += numeros.charAt(tamanho - i) * pos--;
+                    if (pos < 2) pos = 9;
+                }
+                
+                let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+                if (resultado != digitos.charAt(0)) return false;
+                
+                tamanho = tamanho + 1;
+                numeros = cnpj.substring(0, tamanho);
+                soma = 0;
+                pos = tamanho - 7;
+                
+                for (let i = tamanho; i >= 1; i--) {
+                    soma += numeros.charAt(tamanho - i) * pos--;
+                    if (pos < 2) pos = 9;
+                }
+                
+                resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+                return resultado == digitos.charAt(1);
+            }
 
             // Salvar e carregar dados do localStorage
             function salvarDados() {
@@ -308,8 +370,12 @@
                 const erros = [];
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 const telefoneLimpo = (telefoneInput.value || '').replace(/\D/g, '');
+                const cnpjLimpo = (cnpjInput.value || '').replace(/\D/g, '');
 
                 if (!document.getElementById('nome').value.trim()) erros.push('O campo <strong>Nome</strong> é obrigatório.');
+                if (!document.getElementById('nome_empresa').value.trim()) erros.push('O campo <strong>Nome da Empresa</strong> é obrigatório.');
+                if (!cnpjInput.value.trim()) erros.push('O campo <strong>CNPJ</strong> é obrigatório.');
+                else if (!validarCNPJ(cnpjInput.value)) erros.push('O <strong>CNPJ</strong> informado é inválido.');
                 if (!document.getElementById('email').value.trim()) erros.push('O campo <strong>E-mail</strong> é obrigatório.');
                 else if (!emailRegex.test(document.getElementById('email').value)) erros.push('O <strong>E-mail</strong> informado é inválido.');
                 if (!telefoneInput.value.trim()) erros.push('O campo <strong>Telefone</strong> é obrigatório.');

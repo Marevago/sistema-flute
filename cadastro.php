@@ -27,15 +27,53 @@ function render_page_footer() {
     echo "</body></html>";
 }
 
+// Função para validar CNPJ
+function validarCNPJ($cnpj) {
+    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+    if (strlen($cnpj) != 14) return false;
+    if (preg_match('/(\d)\1{13}/', $cnpj)) return false; // Todos os dígitos iguais
+    
+    $tamanho = strlen($cnpj) - 2;
+    $numeros = substr($cnpj, 0, $tamanho);
+    $digitos = substr($cnpj, $tamanho);
+    $soma = 0;
+    $pos = $tamanho - 7;
+    
+    for ($i = $tamanho; $i >= 1; $i--) {
+        $soma += $numeros[$tamanho - $i] * $pos--;
+        if ($pos < 2) $pos = 9;
+    }
+    
+    $resultado = $soma % 11 < 2 ? 0 : 11 - $soma % 11;
+    if ($resultado != $digitos[0]) return false;
+    
+    $tamanho = $tamanho + 1;
+    $numeros = substr($cnpj, 0, $tamanho);
+    $soma = 0;
+    $pos = $tamanho - 7;
+    
+    for ($i = $tamanho; $i >= 1; $i--) {
+        $soma += $numeros[$tamanho - $i] * $pos--;
+        if ($pos < 2) $pos = 9;
+    }
+    
+    $resultado = $soma % 11 < 2 ? 0 : 11 - $soma % 11;
+    return $resultado == $digitos[1];
+}
+
 // --- Lógica Principal do Formulário ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $camposObrigatorios = ['nome' => 'Nome', 'email' => 'E-mail', 'telefone' => 'Telefone', 'cidade' => 'Cidade', 'estado' => 'Estado', 'senha' => 'Senha', 'confirma_senha' => 'Confirmar senha'];
+    $camposObrigatorios = ['nome' => 'Nome', 'nome_empresa' => 'Nome da Empresa', 'cnpj' => 'CNPJ', 'email' => 'E-mail', 'telefone' => 'Telefone', 'cidade' => 'Cidade', 'estado' => 'Estado', 'senha' => 'Senha', 'confirma_senha' => 'Confirmar senha'];
     $erros = [];
 
     foreach ($camposObrigatorios as $campo => $rotulo) {
         if (empty(trim($_POST[$campo] ?? ''))) {
             $erros[] = "O campo <strong>{$rotulo}</strong> é obrigatório.";
         }
+    }
+
+    if (!empty($_POST['cnpj']) && !validarCNPJ($_POST['cnpj'])) {
+        $erros[] = "O <strong>CNPJ</strong> informado é inválido.";
     }
 
     if (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
@@ -74,6 +112,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn = $database->getConnection();
 
         $email = trim($_POST['email']);
+        $cnpj = preg_replace('/[^0-9]/', '', $_POST['cnpj']);
+        
+        // Verifica se email já existe
         $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = :email");
         $stmt->execute([':email' => $email]);
         if ($stmt->fetch()) {
@@ -82,16 +123,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             render_page_footer();
             exit;
         }
+        
+        // Verifica se CNPJ já existe
+        $stmt = $conn->prepare("SELECT id FROM usuarios WHERE cnpj = :cnpj");
+        $stmt->execute([':cnpj' => $cnpj]);
+        if ($stmt->fetch()) {
+            render_page_header('Erro no Cadastro');
+            echo "<main class='main-container'><div class='card card-error'><img src='uploads/flute_logo.png' alt='Flute Incensos' class='logo'><h2>CNPJ já cadastrado</h2><p>O CNPJ informado já está em uso. Cada empresa pode ter apenas uma conta.</p><div><a href='login.html' class='btn'>Fazer Login</a><a href='cadastro.html' class='btn btn-secondary' style='margin-left:10px;'>Voltar</a></div></div></main>";
+            render_page_footer();
+            exit;
+        }
 
         $nome = trim($_POST['nome']);
+        $nome_empresa = trim($_POST['nome_empresa']);
         $telefone = preg_replace('/[^0-9]/', '', $_POST['telefone']);
         $cidade = trim($_POST['cidade']);
         $estado = $_POST['estado'];
         $senha_hash = password_hash($_POST['senha'], PASSWORD_DEFAULT);
 
-        $query = "INSERT INTO usuarios (nome, email, telefone, cidade, estado, senha_hash, data_cadastro) VALUES (:nome, :email, :telefone, :cidade, :estado, :senha_hash, NOW())";
+        $query = "INSERT INTO usuarios (nome, nome_empresa, cnpj, email, telefone, cidade, estado, senha_hash, data_cadastro) VALUES (:nome, :nome_empresa, :cnpj, :email, :telefone, :cidade, :estado, :senha_hash, NOW())";
         $stmt = $conn->prepare($query);
-        $stmt->execute([':nome' => $nome, ':email' => $email, ':telefone' => $telefone, ':cidade' => $cidade, ':estado' => $estado, ':senha_hash' => $senha_hash]);
+        $stmt->execute([':nome' => $nome, ':nome_empresa' => $nome_empresa, ':cnpj' => $cnpj, ':email' => $email, ':telefone' => $telefone, ':cidade' => $cidade, ':estado' => $estado, ':senha_hash' => $senha_hash]);
 
         try {
             $emailService = new EmailService();
@@ -101,7 +153,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         render_page_header('Cadastro Realizado');
-        echo "<main class='main-container'><div class='card card-success'><div class='icon icon-success'>✓</div><h1>Cadastro Realizado com Sucesso!</h1><p>Olá <span class='highlight'>{$nome}</span>, seu cadastro foi confirmado!</p><div class='details'><p><strong>E-mail:</strong> {$email}</p><p><strong>Telefone:</strong> " . formatarTelefone($telefone) . "</p><p><strong>Localização:</strong> {$cidade} / {$estado}</p></div><p>Enviamos um e-mail de boas-vindas para você. Já pode fazer login na plataforma.</p><a href='login.html' class='btn'>Fazer Login</a></div></main>";
+        $cnpj_formatado = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $cnpj);
+        echo "<main class='main-container'><div class='card card-success'><div class='icon icon-success'>✓</div><h1>Cadastro Realizado com Sucesso!</h1><p>Olá <span class='highlight'>{$nome}</span>, seu cadastro foi confirmado!</p><div class='details'><p><strong>Empresa:</strong> {$nome_empresa}</p><p><strong>CNPJ:</strong> {$cnpj_formatado}</p><p><strong>E-mail:</strong> {$email}</p><p><strong>Telefone:</strong> " . formatarTelefone($telefone) . "</p><p><strong>Localização:</strong> {$cidade} / {$estado}</p></div><p>Enviamos um e-mail de boas-vindas para você. Já pode fazer login na plataforma.</p><a href='login.html' class='btn'>Fazer Login</a></div></main>";
         render_page_footer();
 
     } catch (PDOException $e) {
